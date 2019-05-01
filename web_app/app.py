@@ -1,39 +1,91 @@
 import flask
-import json
-from flask import request, jsonify, abort
+import requests
+from flask import request, jsonify, abort, render_template
 
 app = flask.Flask(__name__)
 
+# ZAP INFORMATION
+ZAP_URL = 'http://10.100.92.156'
+ZAP_PORT = '1337'
+ZAP_SPIDER_SCAN = '/JSON/spider/action/scan'
 
-# Test Data
-test_data = [
-    {"id": 0, "name": "A Fire Upon the Deep", "cat": "Vernor Vinge"},
-    {"id": 0, "name": "A reddit Upon the Deep", "cat": "chocolate Vinge"},
-    {"id": 0, "name": "gmail", "cat": "axe Vinge"}
-]
+
+zap_scan_spider_uri = f"{ZAP_URL}:{ZAP_PORT}{ZAP_SPIDER_SCAN}"
+
+
+def post_scan_start(zap_scan_spider_uri, requested_url):
+    post_data = {
+        'zapapiformat': 'JSON',
+        'formMethod': 'POST',
+        'url': requested_url,  # FIXME: You need to URL encode this parameter
+        'maxChildren': 1,
+        'recurse': 'False',
+        'contextName': '',
+        'subtreeOnly': 'None'
+    }
+    data = requests.post(zap_scan_spider_uri, data=post_data)
+    # print(post_data)
+    # print(data.content)
+    return data.content
 
 
 @app.route("/", methods=["GET"])
 def home():
-    return "<h1>G3 PT API</h1><p>This site is a prototype API</p>"
+    return render_template("home.html")
 
 
 @app.route("/api/v1/scan/start", methods=["POST"])
 def scan_start():
+
+    # Setting up some message for the response
+    param = 'url'
+    acceptance_strings = [
+        'wmic.ins',
+        '.ins'
+    ]
+    resrict = "Resticted domain used in URL '{}'"
     example_json = "{\n  \"url\":\"https://xxx.com\"\n}"
+
+    # If there is no JSON Response abort
+    if not request.json:
+        abort(400)
+    try:
+        # Ensure the url param was sent to the api
+        if request.json['url']:
+            requested_url = request.json['url']
+            print(f"URL = {requested_url}")
+            # Ensure that the url is within the whitelist
+            for bad_string in acceptance_strings:
+                if bad_string in request.json['url']:
+                    scan_results = post_scan_start(zap_scan_spider_uri,
+                                                   requested_url)
+                    return scan_results
+                else:
+                    # if not return the error to the user
+                    return resrict.format(requested_url)
+        else:
+            return f"No {param} Parameter passed"
+    except KeyError:
+        return f"Incorrect synax. Please post: \n{example_json}"
+
+
+@app.route("/api/v1/scan/progress", methods=["POST"])
+def scan_progress():
+    param = 'id'
+    example_json = "{\n  \"id\":\"4\"\n}"
     if not request.json:
         abort(400)
     print(f"input: {request.json}")
     try:
-        if request.json['url']:
-            output = {"url": request.json['url']}
-            # TODO: Post this to ZAP
+        if request.json['id']:
+            output = {
+                param: request.json[param]
+            }
             return jsonify(output)
         else:
-            return "No URL Parameter passed"
+            return f"No {param} Parameter passed"
     except KeyError:
-        return f"Incorrect synax. Please post: \n{example_json}"
-
+        return f"Incorrect synax.\nmethod = POST\nexample \n{example_json}"
 
 
 if __name__ == '__main__':

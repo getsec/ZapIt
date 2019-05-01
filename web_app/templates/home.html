@@ -1,0 +1,68 @@
+<!-- </html>
+<h1>The API Central</h1>
+
+<p>There are only three endpoints to query</p>
+<ul>
+    <li>/api/v1/scan/start</li>
+    <ul>Launches the scan against your target</ul>
+    <ul><b>POST: </b> {"url": "https://something.wmic.ins"}</ul>
+    <li>/api/v1/scan/progress</li>
+    <ul>Checks the scan progress</ul>
+    <ul><b>POST: </b> {"id": "4"}</ul>
+    <li>/api/v1/scan/report</li>
+    <ul>Once your scan reaches 100. You can download the report</ul>
+    <ul><b>POST: </b> {"id": "4"}</ul>
+</ul>
+
+</html -->
+
+
+<!DOCTYPE html>
+<html>
+
+<head>
+    <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/styles/default.min.css">
+    <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.15.6/highlight.min.js"></script>
+    <title>Flask app</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+</head>
+
+<body>
+    <header>
+        <div class="container">
+            <h1 class="logo">IS Security Automated Pentest API</h1>
+            <strong>
+                <nav>
+                    <ul class="menu">
+                        <li><a href="mailto:issecurity@wawanesa.com">help?</a></li>
+
+                    </ul>
+                </nav>
+            </strong>
+        </div>
+    </header>
+    <div class="container">
+        <li>/api/v1/scan/start - Launches the scan against your target</li>
+
+        <ul>Request Method: <b>POST</b> </ul>
+        <ul>Request Parameter: <b>url</b> </ul>
+        <ul>Request Example: {"url":"https://something.wmic.ins"}</ul>
+        <ul>Return Example: {"id":"6"}</ul>
+
+        <li>/api/v1/scan/progress - returns a number (0, 100) 100 = complete</li>
+
+        <ul>Request Method: <b>POST</b> </ul>
+        <ul>Request Parameter: <b>id</b> </ul>
+        <ul>Request Example: {"id":"6"}</ul>
+        <ul>Response Example: {"progress":"63"}</ul>
+
+        <li>/api/v1/scan/report - Launches the scan against your target</li>
+
+        <ul>Request Method: <b>POST</b> </ul>
+        <ul>Request Parameter: <b>id</b> </ul>
+        <ul>Request Example: {"id":"6"}</ul>
+        <ul>Response Example: {big json string of the report}</ul>
+    </div>
+</body>
+
+</html>

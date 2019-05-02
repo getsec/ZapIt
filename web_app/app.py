@@ -1,5 +1,6 @@
 import flask
 import requests
+import urllib.parse as encode_url
 from flask import request, jsonify, abort, render_template
 
 app = flask.Flask(__name__)
@@ -14,10 +15,11 @@ zap_scan_spider_uri = f"{ZAP_URL}:{ZAP_PORT}{ZAP_SPIDER_SCAN}"
 
 
 def post_scan_start(zap_scan_spider_uri, requested_url):
+    encoded_url = encode_url.quote(requested_url)
     post_data = {
         'zapapiformat': 'JSON',
         'formMethod': 'POST',
-        'url': requested_url,  # FIXME: You need to URL encode this parameter
+        'url': encoded_url,
         'maxChildren': 1,
         'recurse': 'False',
         'contextName': '',

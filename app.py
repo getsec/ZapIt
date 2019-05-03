@@ -50,8 +50,6 @@ def post_scan_results(zap_scan_spider_results, scan_id, format):
         'scanId': scan_id
     }
     results = requests.post(zap_scan_spider_results, data=post_data)
-    print(post_data)
-    print(results.content)
     return results.content
 
 

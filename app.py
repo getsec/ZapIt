@@ -1,10 +1,14 @@
 import flask
 import requests
 from flask import request, abort, render_template
-# TODO: Figure out logging.
+import logging
 
 
 app = flask.Flask(__name__)
+logger = logging.getLogger()
+logger.setLevel(logging.INFO)
+# TODO: Figure out logging.
+
 
 # ZAP INFORMATION
 ZAP_URL = 'http://10.100.92.156'  # TODO: replace with environment variable
@@ -29,10 +33,12 @@ def post_scan_start(zap_scan_spider_uri, requested_url):
         'subtreeOnly': ''
     }
     data = requests.post(zap_scan_spider_uri, data=post_data)
-    # print(post_data)
-    # print(post_data)
-    # print(data.content)
-    return data.content
+    if data.status_code == 200:
+        logger.info(f"Scan succesfully launched against {requested_url}")
+        return data.content
+    else:
+        logger.error(f"Scan initation failed {data.content}")
+        return data.content
 
 
 def post_scan_status(zap_scan_spider_status, scan_id):
@@ -42,7 +48,11 @@ def post_scan_status(zap_scan_spider_status, scan_id):
         'scanId': scan_id
     }
     progress = requests.post(zap_scan_spider_status, data=post_data)
-    return progress.content
+    if progress.status_code == 200:
+        return progress.content
+    else:
+        logger.error(f"{zap_scan_spider_status} returned non-200")
+        logger.error(progress.status_code, progress.content)
 
 
 def post_scan_results(zap_scan_spider_results, scan_id, format):

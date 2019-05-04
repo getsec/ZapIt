@@ -1,11 +1,19 @@
 import flask
 import requests
+import json
+from urllib.parse import urlparse
 from flask import request, abort, render_template
 import logging
 
 
 app = flask.Flask(__name__)
 logger = logging.getLogger()
+logging.basicConfig(
+    format='%(asctime)s:%(levelname)s:%(message)s',
+    datefmt='%m/%d/%Y %I:%M:%S %p',
+    filename='example.log',
+    level=logging.DEBUG
+)
 logger.setLevel(logging.INFO)
 # TODO: Figure out logging.
 
@@ -32,12 +40,13 @@ def post_scan_start(zap_scan_spider_uri, requested_url):
         'contextName': '',
         'subtreeOnly': ''
     }
+
     data = requests.post(zap_scan_spider_uri, data=post_data)
     if data.status_code == 200:
-        logger.info(f"Scan succesfully launched against {requested_url}")
+        logger.info(f"msg='Scan succesfully launched' target='{requested_url}'")
         return data.content
     else:
-        logger.error(f"Scan initation failed {data.content}")
+        logger.error(f"msg='Scan initation failed' target='{data.content}'")
         return data.content
 
 
@@ -51,7 +60,7 @@ def post_scan_status(zap_scan_spider_status, scan_id):
     if progress.status_code == 200:
         return progress.content
     else:
-        logger.error(f"{zap_scan_spider_status} returned non-200")
+        logger.error(f"msg='returned non-200' error='{zap_scan_spider_status}'")
         logger.error(progress.status_code, progress.content)
 
 
@@ -63,6 +72,7 @@ def post_scan_results(zap_scan_spider_results, scan_id, format):
     }
     results = requests.post(zap_scan_spider_results, data=post_data)
     return results.content
+
 
 
 @app.route("/", methods=["GET"])
@@ -88,7 +98,6 @@ def spider_start():
         # Ensure the url param was sent to the api
         if request.json['url']:
             requested_url = request.json['url']
-
             # Ensure that the url is within the whitelist
             for match in acceptance_strings:
                 if requested_url.endswith(match):
@@ -97,7 +106,9 @@ def spider_start():
                     return scan_id
             else:
                 # if not return the error to the user
+                logger.info(f"msg='User used restricted URL' target='{requested_url}") # NOQA
                 return resrict.format(requested_url)
+                
         else:
             return f"No {param} Parameter passed"
     except KeyError:
@@ -133,10 +144,17 @@ def spider_results():
         if request.json['id'] and request.json['format']:
             scan_id = request.json['id']
             format = request.json['format'].upper()
-            spider_results = post_scan_results(zap_scan_spider_results,
-                                               scan_id,
-                                               format)
-            return spider_results
+            results = post_scan_results(zap_scan_spider_results,
+                                        scan_id,
+                                        format)
+            content = json.loads(results.decode('utf-8'))
+            total_results = len(content['results'])
+            u = urlparse(content['results'][0])
+            base = f"{u.scheme}//{u.netloc}"
+
+            logger.info(f"msg='Total Results' target='{base}' results='{total_results}'")
+            f"msg='Total Results' target='{base}' results='{total_results}'"
+            return results
         else:
             return msg
     except KeyError:
@@ -145,3 +163,4 @@ def spider_results():
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)
+

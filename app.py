@@ -1,6 +1,7 @@
 import flask
 import requests
 import json
+import os
 from urllib.parse import urlparse
 from flask import request, abort, render_template
 import logging
@@ -15,12 +16,21 @@ logging.basicConfig(
     level=logging.DEBUG
 )
 logger.setLevel(logging.INFO)
-# TODO: Figure out logging.
-
+# TODO: (PROD) Setup app logging to a remote host
 
 # ZAP INFORMATION
-ZAP_URL = 'http://10.100.92.156'  # TODO: replace with environment variable
-ZAP_PORT = '1337'   # TODO: replace with environment variable
+# Try to grab the environment variables from the systems env
+# If not in env, use the hard coded ones - this will fail on a prod system
+try:
+    ZAP_PORT = os.environ["ZAP_PORT"]
+    ZAP_URL = os.environ["ZAP_URL"]
+except KeyError:
+    ZAP_URL = 'http://10.100.92.156'
+    ZAP_PORT = '1337'
+
+# TODO: Setup URL for passive scans
+# TODO: Setup URL for active scans
+
 ZAP_SPIDER_SCAN = '/JSON/spider/action/scan'
 ZAP_SPIDER_STATUS = '/JSON/spider/view/status'
 ZAP_SPIDER_RESULTS = '/JSON/spider/view/results'
@@ -28,6 +38,18 @@ ZAP_SPIDER_RESULTS = '/JSON/spider/view/results'
 zap_scan_spider_uri = f"{ZAP_URL}:{ZAP_PORT}{ZAP_SPIDER_SCAN}"
 zap_scan_spider_status = f"{ZAP_URL}:{ZAP_PORT}{ZAP_SPIDER_STATUS}"
 zap_scan_spider_results = f"{ZAP_URL}:{ZAP_PORT}{ZAP_SPIDER_RESULTS}"
+
+
+# TODO: Ensure logic in start scan api call actually registers the target
+def register_target(zap_register_target_uri, target):
+    post_data = {
+        "target": target
+    }
+    data = requests.post(zap_register_target_uri,
+                         data=post_data)
+    if data.status_code == 200:
+        logger.info(f"msg='registed target for scanning' target='{target}'")
+        return target
 
 
 def post_scan_start(zap_scan_spider_uri, requested_url):
@@ -74,7 +96,7 @@ def post_scan_results(zap_scan_spider_results, scan_id, format):
     return results.content
 
 
-
+# BEGIN API CALLS
 @app.route("/", methods=["GET"])
 def home():
     return render_template("home.html")

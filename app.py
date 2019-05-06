@@ -185,4 +185,6 @@ def spider_results():
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)
+    logger.info(f"msg='Succesfully started' target='{ZAP_URL}:{ZAP_PORT}'")
+    print(f"msg='Succesfully started' target='{ZAP_URL}:{ZAP_PORT}'")
 

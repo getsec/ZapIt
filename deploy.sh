@@ -17,7 +17,7 @@ else
 fi
 
 echo "Building the FLASK APP"
-#docker build -t flask:latest .
+docker build -t flask:latest .
 docker run  -d -p 5000:5000 -e "ZAP_URL=http://$IP_ADDR" -e "ZAP_PORT=$PORT" flask:latest
 echo "Succesfully launched flask connected to ZAP: http://$IP_ADDR:$PORT"
 

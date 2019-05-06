@@ -15,8 +15,12 @@ logging.basicConfig(
     filename='example.log',
     level=logging.DEBUG
 )
+
+remote_host = logging.handlers.SysLogHandler(
+    address=('1.1.1.1', 514)
+)
+logger.addHandler(remote_host)
 logger.setLevel(logging.INFO)
-# TODO: (PROD) Setup app logging to a remote host
 
 # ZAP INFORMATION
 # Try to grab the environment variables from the systems env
@@ -38,6 +42,7 @@ ZAP_SPIDER_RESULTS = '/JSON/spider/view/results'
 zap_scan_spider_uri = f"{ZAP_URL}:{ZAP_PORT}{ZAP_SPIDER_SCAN}"
 zap_scan_spider_status = f"{ZAP_URL}:{ZAP_PORT}{ZAP_SPIDER_STATUS}"
 zap_scan_spider_results = f"{ZAP_URL}:{ZAP_PORT}{ZAP_SPIDER_RESULTS}"
+# /END ZAP URLS
 
 
 # TODO: Ensure logic in start scan api call actually registers the target

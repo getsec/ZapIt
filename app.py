@@ -16,10 +16,10 @@ logging.basicConfig(
     level=logging.DEBUG
 )
 
-remote_host = logging.handlers.SysLogHandler(
-    address=('1.1.1.1', 514)
-)
-logger.addHandler(remote_host)
+# remote_host = logging.handlers.SysLogHandler(
+#     address=('1.1.1.1', 514)
+# )
+# logger.addHandler(remote_host)
 logger.setLevel(logging.INFO)
 
 # ZAP INFORMATION

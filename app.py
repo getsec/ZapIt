@@ -27,9 +27,6 @@ logging.basicConfig(
 # logger.addHandler(remote_host)
 logger.setLevel(logging.INFO)
 
-# ZAP INFORMATION
-# Try to grab the environment variables from the systems env
-# If not in env, use the hard coded ones - this will fail on a prod system
 try:
     ZAP_PORT = os.environ["ZAP_PORT"]
     ZAP_URL = os.environ["ZAP_URL"]

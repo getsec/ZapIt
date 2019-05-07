@@ -58,6 +58,7 @@ def register_target(zap_register_target_uri, target):
 
 
 def post_scan_start(zap_scan_spider_uri, requested_url):
+    
     post_data = {
         'zapapiformat': 'JSON',
         'formMethod': 'POST',
@@ -189,7 +190,7 @@ def spider_results():
 
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000, debug=True)
+    app.run(host='0.0.0.0', port=5000)
     logger.info(f"msg='Succesfully started' target='{ZAP_URL}:{ZAP_PORT}'")
     print(f"msg='Succesfully started' target='{ZAP_URL}:{ZAP_PORT}'")
 

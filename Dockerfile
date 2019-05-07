@@ -4,9 +4,11 @@ COPY . /app
 
 WORKDIR /app
 
+RUN pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pythonhosted.org
+
 RUN pip install -r requirements.txt --trusted-host pypi.org --trusted-host files.pythonhosted.org
 
-RUN logs
+RUN mkdir logs
 
 ENTRYPOINT ["python"]
 

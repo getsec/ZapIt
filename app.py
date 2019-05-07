@@ -4,15 +4,20 @@ import json
 import os
 from urllib.parse import urlparse
 from flask import request, abort, render_template
+import flask_pure
 import logging
 
 
 app = flask.Flask(__name__)
+app.config['PURECSS_RESPONSIVE_GRIDS'] = True
+app.config['PURECSS_USE_CDN'] = True
+app.config['PURECSS_USE_MINIFIED'] = True
+flask_pure.Pure(app)
 logger = logging.getLogger()
 logging.basicConfig(
     format='%(asctime)s:%(levelname)s:%(message)s',
     datefmt='%m/%d/%Y %I:%M:%S %p',
-    filename='example.log',
+    filename='logs/example.log',
     level=logging.DEBUG
 )
 
@@ -20,7 +25,7 @@ logging.basicConfig(
 #     address=('1.1.1.1', 514)
 # )
 # logger.addHandler(remote_host)
-logger.setLevel(logging.INFO)
+# logger.setLevel(logging.INFO)
 
 # ZAP INFORMATION
 # Try to grab the environment variables from the systems env
@@ -108,6 +113,11 @@ def home():
     return render_template("home.html")
 
 
+@app.route("/documentation", methods=["GET"])
+def docs():
+    return render_template("docs.html")
+
+
 @app.route("/api/v1/scan/start", methods=["POST"])
 def spider_start():
     # Setting up some message for the response
@@ -187,10 +197,10 @@ def spider_results():
             return msg
     except KeyError:
         return msg
-
+ 
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000)
+    app.run(host='0.0.0.0', port=5000, debug=True)
     logger.info(f"msg='Succesfully started' target='{ZAP_URL}:{ZAP_PORT}'")
     print(f"msg='Succesfully started' target='{ZAP_URL}:{ZAP_PORT}'")
 

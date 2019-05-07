@@ -25,7 +25,7 @@ logging.basicConfig(
 #     address=('1.1.1.1', 514)
 # )
 # logger.addHandler(remote_host)
-# logger.setLevel(logging.INFO)
+logger.setLevel(logging.INFO)
 
 # ZAP INFORMATION
 # Try to grab the environment variables from the systems env
@@ -63,7 +63,6 @@ def register_target(zap_register_target_uri, target):
 
 
 def post_scan_start(zap_scan_spider_uri, requested_url):
-    
     post_data = {
         'zapapiformat': 'JSON',
         'formMethod': 'POST',
@@ -113,7 +112,7 @@ def home():
     return render_template("home.html")
 
 
-@app.route("/documentation", methods=["GET"])
+@app.route("/docs", methods=["GET"])
 def docs():
     return render_template("docs.html")
 

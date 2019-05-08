@@ -17,14 +17,12 @@ logger = logging.getLogger()
 logging.basicConfig(
     format='%(asctime)s:%(levelname)s:%(message)s',
     datefmt='%m/%d/%Y %I:%M:%S %p',
-    filename='logs/example.log',
     level=logging.DEBUG
 )
 
-# remote_host = logging.handlers.SysLogHandler(
-#     address=('1.1.1.1', 514)
-# )
-# logger.addHandler(remote_host)
+remote_host = logging.handlers.SysLogHandler(
+    address=('10.111.5.122', 514))
+logger.addHandler(remote_host)
 logger.setLevel(logging.INFO)
 
 try:
@@ -142,7 +140,7 @@ def spider_start():
                 # if not return the error to the user
                 logger.info(f"msg='User used restricted URL' target='{requested_url}") # NOQA
                 return resrict.format(requested_url)
-                
+
         else:
             return f"No {param} Parameter passed"
     except KeyError:
@@ -193,7 +191,7 @@ def spider_results():
             return msg
     except KeyError:
         return msg
- 
+
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)

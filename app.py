@@ -109,9 +109,9 @@ def home():
     return render_template("home.html")
 
 
-@app.route("/docs", methods=["GET"])
+@app.route("/easter", methods=["GET"])
 def docs():
-    return render_template("docs.html")
+    return "</h1> eggies </h1>"
 
 
 @app.route("/api/v1/scan/start", methods=["POST"])

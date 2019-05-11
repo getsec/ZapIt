@@ -20,44 +20,51 @@ logging.basicConfig(
     level=logging.DEBUG
 )
 
-remote_host = logging.handlers.SysLogHandler(
-    address=('10.111.5.122', 514))
-logger.addHandler(remote_host)
+# remote_host = logging.handlers.SysLogHandler(
+#     address=('10.111.5.122', 514))
+# logger.addHandler(remote_host)
 logger.setLevel(logging.INFO)
 
 try:
     ZAP_PORT = os.environ["ZAP_PORT"]
     ZAP_URL = os.environ["ZAP_URL"]
 except KeyError:
-    ZAP_URL = 'http://10.100.92.156'
+    ZAP_URL = 'http://0.0.0.0'
     ZAP_PORT = '1337'
 
-# TODO: Setup URL for passive scans
 # TODO: Setup URL for active scans
 
 ZAP_SPIDER_SCAN = '/JSON/spider/action/scan'
 ZAP_SPIDER_STATUS = '/JSON/spider/view/status'
 ZAP_SPIDER_RESULTS = '/JSON/spider/view/results'
+ZAP_REGISTER = "/JSON/pscan/action/setEnabled"
+ZAP_SCAN_RESULTS = "/OTHER/core/other/jsonreport/?formMethod=GET"
 
 zap_scan_spider_uri = f"{ZAP_URL}:{ZAP_PORT}{ZAP_SPIDER_SCAN}"
 zap_scan_spider_status = f"{ZAP_URL}:{ZAP_PORT}{ZAP_SPIDER_STATUS}"
 zap_scan_spider_results = f"{ZAP_URL}:{ZAP_PORT}{ZAP_SPIDER_RESULTS}"
+zap_register_target_uri = f"{ZAP_URL}:{ZAP_PORT}{ZAP_REGISTER}"
+zap_vulnerability_results = f"{ZAP_URL}:{ZAP_PORT}{ZAP_SCAN_RESULTS}"
+
 # /END ZAP URLS
 
 
-# TODO: Ensure logic in start scan api call actually registers the target
-def register_target(zap_register_target_uri, target):
-    post_data = {
-        "target": target
-    }
-    data = requests.post(zap_register_target_uri,
-                         data=post_data)
-    if data.status_code == 200:
-        logger.info(f"msg='registed target for scanning' target='{target}'")
-        return target
+def register_and_scan(zap_register_target_uri,
+                      zap_scan_spider_uri,
+                      requested_url):
+    register = requests.post(
+        zap_register_target_uri,
+        data={
+            "zapapiformat": "JSON",
+            "formMethod": "POST",
+            "enabled": "True"
+        }
+    )
+    if register.status_code == 200:
+        logger.info(f"msg='Scan succesfully launched' target='{requested_url}'")
+    else:
+        logger.error(f"msg='Scan initation failed' target='{register.content}'")
 
-
-def post_scan_start(zap_scan_spider_uri, requested_url):
     post_data = {
         'zapapiformat': 'JSON',
         'formMethod': 'POST',
@@ -108,11 +115,11 @@ def home():
 
 
 @app.route("/easter", methods=["GET"])
-def docs():
+def easter_eggies():
     return "</h1> eggies </h1>"
 
 
-@app.route("/api/v1/scan/start", methods=["POST"])
+@app.route("/api/v1/spider/start", methods=["POST"])
 def spider_start():
     # Setting up some message for the response
     param = 'url'
@@ -133,8 +140,10 @@ def spider_start():
             # Ensure that the url is within the whitelist
             for match in acceptance_strings:
                 if requested_url.endswith(match):
-                    scan_id = post_scan_start(zap_scan_spider_uri,
-                                              requested_url)
+                    scan_id = register_and_scan(
+                        zap_register_target_uri,
+                        zap_scan_spider_uri,
+                        requested_url)
                     return scan_id
             else:
                 # if not return the error to the user
@@ -147,7 +156,7 @@ def spider_start():
         return f"Incorrect synax. Please post: \n{example_json}"
 
 
-@app.route("/api/v1/scan/progress", methods=["POST"])
+@app.route("/api/v1/spider/progress", methods=["POST"])
 def spider_progress():
     param = 'id'
     example_json = "{\n  \"id\":\"4\"\n}"
@@ -165,7 +174,7 @@ def spider_progress():
         return f"Incorrect synax.\nmethod = POST\nexample \n{example_json}"
 
 
-@app.route("/api/v1/scan/results", methods=["POST"])
+@app.route("/api/v1/spider/results", methods=["POST"])
 def spider_results():
     example_json = "{\n  \"format\":\"json\", \"id\":\"2\"\n}"
     msg = f"missing id or format param in request\n\n{example_json}"
@@ -193,8 +202,17 @@ def spider_results():
         return msg
 
 
+@app.route("/api/v1/scan/results", methods=["GET"])
+def scan_results():
+    # Returns full results.
+    results = requests.get(zap_vulnerability_results)
+    if results.status_code == 200:
+        return results.content
+    else:
+        return "Error rendering request"
+
+
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)
     logger.info(f"msg='Succesfully started' target='{ZAP_URL}:{ZAP_PORT}'")
     print(f"msg='Succesfully started' target='{ZAP_URL}:{ZAP_PORT}'")
-

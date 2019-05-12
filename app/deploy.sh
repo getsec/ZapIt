@@ -7,7 +7,7 @@ ENV=$1
 echo "Buidling ZAP ($ENV)"
 if [ "$ENV" == "stable" ]; then
     IMG=$STABLE
-    docker run -d -u zap -p $PORT\:$PORT -i $IMG zap.sh -daemon -host '0.0.0.0' -port $PORT -config api.addrs.addr.name=.\* -config api.addrs.addr.regex=true -config api.disablekey=true
+    docker run -d  -p $PORT\:$PORT -i $IMG zap.sh -daemon -host '0.0.0.0' -port $PORT -config api.addrs.addr.name=.\* -config api.addrs.addr.regex=true -config api.disablekey=true
 elif [ "$ENV" == "bare" ]; then
     IMG=$BARE
     docker run -d -u zap -p $PORT:$PORT -i $IMG zap.sh -daemon -host '0.0.0.0' -port $PORT  -config api.addrs.addr.name=.\* -config api.addrs.addr.regex=true -config api.disablekey=true

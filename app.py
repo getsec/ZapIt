@@ -1,6 +1,5 @@
 import flask
 import requests
-import json
 from os import environ
 from urllib.parse import urlparse
 from flask import request, abort, jsonify
@@ -95,13 +94,29 @@ def full_report(ZAP_URL, ZAP_PORT):
 
 
 # BEGIN API CALLS
+@app.route("/")
+def home():
+    welcome = """
+        <h1>
+            Welcome Friends
+        </h1>
+
+        <p>
+            Hey There. I'm sure you are looking for some documentation. No problem. I got
+                <a href="https://github.com/getsec/ZapIt"> you</a>
+        </p>
+    """
+    return welcome
+
+
 @app.route("/api/v1/spider/start", methods=["POST"])
 def spider_start():
     # Setting up some message for the response
     param = 'url'
     acceptance_strings = [
         'wmic.ins',
-        'wawanesa.com'
+        'wawanesa.com',
+        'example.com'
     ]
     resrict = "Resticted domain used in URL '{}'"
     example_json = "{\n  \"url\":\"https://xxx.com\"\n}"
@@ -157,9 +172,8 @@ def spider_results():
         if request.json['id']:
             scan_id = request.json['id']
             results = post_scan_results(ZAP_URL, ZAP_PORT, scan_id)
-            content = json.loads(results.decode('utf-8'))
-            total_results = len(content['results'])
-            u = urlparse(content['results'][0])
+            total_results = len(results['results'])
+            u = urlparse(results['results'][0])
             base = f"{u.scheme}//{u.netloc}"
 
             logger.info(f"msg='Total Results' target='{base}' results='{total_results}'")

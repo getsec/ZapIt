@@ -25,8 +25,9 @@ ZapIt
 ### Deployment
 
 Launch the docker deploy script
-> bare version good for fast deployment
-> stable version good for more features (not yet needed in the API)
+> *bare* version good for fast deployment
+
+> *stable* version good for more features (not yet needed in the API)
 
 ```sh
 ./app/deploy.sh [version]

@@ -1,23 +1,39 @@
 STABLE="docker pull owasp/zap2docker-stable"
 BARE="owasp/zap2docker-bare"
-IP_ADDR=$(ifconfig | grep "inet " | grep -v 127.0.0.1 | cut -d\  -f2)
-PORT="1337"
+IP_ADDR="127.0.0.1"
+FLASK_IMAGE="flask:latest"
+ZAP_PORT="1337"
 ENV=$1
+FLASK_PORT="5000"
+function deploy_flask () {
+    docker build -t $FLASK_IMAGE .
+    docker run  -d -p $FLASK_PORT\:$FLASK_PORT -e "ZAP_URL=http://$ZAP_IP" -e "ZAP_PORT=$ZAP_PORT" $FLASK_IMAGE
+}
 
-echo "Buidling ZAP ($ENV)"
-if [ "$ENV" == "stable" ]; then
-    IMG=$STABLE
-    docker run -d  -p $PORT\:$PORT -i $IMG zap.sh -daemon -host '0.0.0.0' -port $PORT -config api.addrs.addr.name=.\* -config api.addrs.addr.regex=true -config api.disablekey=true
-elif [ "$ENV" == "bare" ]; then
-    IMG=$BARE
-    docker run -d -u zap -p $PORT:$PORT -i $IMG zap.sh -daemon -host '0.0.0.0' -port $PORT  -config api.addrs.addr.name=.\* -config api.addrs.addr.regex=true -config api.disablekey=true
+function deploy_zap () {
+    echo "Buidling ZAP ($ENV)"
+    if [ "$ENV" == "stable" ]; then
+        IMG=$STABLE
+        CID=$(docker run -d  -p $ZAP_PORT\:$ZAP_PORT -i $IMG zap.sh -daemon -host '0.0.0.0' -port $ZAP_PORT -config api.addrs.addr.name=.\* -config api.addrs.addr.regex=true -config api.disablekey=true)
+    elif [ "$ENV" == "bare" ]; then
+        IMG=$BARE
+        CID=$(docker run -d -u zap -p $ZAP_PORT\:$ZAP_PORT -i $IMG zap.sh -daemon -host '0.0.0.0' -port $ZAP_PORT  -config api.addrs.addr.name=.\* -config api.addrs.addr.regex=true -config api.disablekey=true)
+    else
+        echo "Missing param [stable/bare]"
+    fi
+    ZAP_IP=$(docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' $CID)
+}
+
+echo "Currently deploying ZAP"
+deploy_zap
+
+if [[ "$(docker images -q $FLASK_IMAGE 2> /dev/null)" == "" ]]; then
+    echo "Attempting to launch flask with tag $FLASK_IMAGE"
+    deploy_flask
 else
-    echo "Missing param [stable/bare]"
-
+    echo "[$FLASK_IMAGE] does exist. Will not re-build"
 fi
-
 #echo "Building the FLASK APP"
-#docker build -t flask:latest .
-#docker run  -d -p 5000:5000 -e "ZAP_URL=http://$IP_ADDR" -e "ZAP_PORT=$PORT" flask:latest
-echo "Succesfully launched flask connected to ZAP: http://$IP_ADDR:$PORT"
+echo "Launched ZAP: http://$ZAP_IP:$ZAP_PORT"
+echo "Succesfully launched flask connected to ZAP: http://$IP_ADDR:$FLASK_PORT"
 

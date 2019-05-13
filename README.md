@@ -8,13 +8,9 @@ These instructions will get you a copy of the project up and running on your loc
 
 ### Prerequisites
 
-- Python 3
+- Python3
 - Docker
-- Python Libraries
-    - flask
-    - requests
-
-
+- Python Dependencies
 ```
 Flask==1.0.2
 requests==2.21.0
@@ -29,9 +25,11 @@ pip install -r requirements.txt
 ```
 
 Launch the docker deploy script
+> bare version good for fast deployment
+> stable version good for more features (not yet needed in the API)
 
 ```sh
-./deploy.sh
+./deploy.sh [version]
 ```
 
 Ensure the containers have started by running

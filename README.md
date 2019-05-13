@@ -4,7 +4,19 @@ This project leverages the ZAP headless scanner along with a FLASK API to allow 
 
 ## Getting Started
 
-These instructions will get you a copy of the project up and running on your local machine for development and testing purposes. See deployment for notes on how to deploy the project on a live system.
+These instructions will get you a copy of the project and the deployment scripts that deploy the docker images that support the project. 
+
+```
+ZapIt
+|--> app
+|     |----> deploy.sh <-- Used for deploying flask and ZAP images
+|--> docs
+|     |----> API.md <-- API Documents for the Flask API front end
+|--> app.py <-- Flask API front end
+|--> DockerFile <-- Dockerfile for deploying the flask app
+|--> requirements.txt <-- Python requirements
+|--> README.md     <-- the instructions 
+```
 
 ### Prerequisites
 

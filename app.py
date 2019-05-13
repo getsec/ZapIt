@@ -1,5 +1,6 @@
 import flask
 import requests
+from sys import exit
 from os import environ
 from urllib.parse import urlparse
 from flask import request, abort, jsonify
@@ -10,14 +11,16 @@ app = flask.Flask(__name__)
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
+# Attempt to load the required params from env.
+# These should be loaded from the docker deploy script
 try:
     ZAP_PORT = environ["ZAP_PORT"]
     ZAP_URL = environ["ZAP_URL"]
 except KeyError:
-    ZAP_URL = 'http://0.0.0.0'
-    ZAP_PORT = '1337'
+    error = "Could not get environment variables ZAP_URL or ZAP_PORT"
+    exit(error)
 
-
+# Used to enable passive scans, and launches spider
 def register_and_scan(ZAP_URL, ZAP_PORT, requested_url):
     ZAP_SPIDER_SCAN = '/JSON/spider/action/scan'
     ZAP_REGISTER = "/JSON/pscan/action/setEnabled"
@@ -55,6 +58,7 @@ def register_and_scan(ZAP_URL, ZAP_PORT, requested_url):
         abort(500)
 
 
+# Used for getting the status of the spider.
 def post_scan_status(ZAP_URL, ZAP_PORT, scan_id):
     ZAP_SPIDER_STATUS = '/JSON/spider/view/status'
     zap_scan_spider_status = f"{ZAP_URL}:{ZAP_PORT}{ZAP_SPIDER_STATUS}"
@@ -71,6 +75,7 @@ def post_scan_status(ZAP_URL, ZAP_PORT, scan_id):
         logger.error(progress.status_code, progress.content)
 
 
+# Used for downloading the results of the spider
 def post_scan_results(ZAP_URL, ZAP_PORT, scan_id):
     ZAP_SPIDER_RESULTS = '/JSON/spider/view/results'
     zap_scan_spider_results = f"{ZAP_URL}:{ZAP_PORT}{ZAP_SPIDER_RESULTS}"
@@ -83,6 +88,8 @@ def post_scan_results(ZAP_URL, ZAP_PORT, scan_id):
     return results.json()
 
 
+# Used for downloading the entire report
+# This will send back passive scan results.
 def full_report(ZAP_URL, ZAP_PORT):
     ZAP_SCAN_RESULTS = "/OTHER/core/other/jsonreport/?formMethod=GET"
     zap_vulnerability_results = f"{ZAP_URL}:{ZAP_PORT}{ZAP_SCAN_RESULTS}"
@@ -148,8 +155,11 @@ def spider_start():
 def spider_progress():
     param = 'id'
     example_json = "{\n  \"id\":\"4\"\n}"
+    # Ensure request includes json data
     if not request.json:
+        return "No json found"
         abort(400)
+    # ensure that the ID param is in the request
     try:
         if request.json['id']:
             scan_id = request.json['id']

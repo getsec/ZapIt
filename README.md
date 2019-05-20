@@ -39,6 +39,11 @@ Ensure the containers have started by running
 docker ps
 ```
 
+## Local Development
+
+If you want to run this repo locally, and develop go ahead. Leverage the test cases, ensure that the ZAP_URL and ZAP_PORT are set in the environ, or hardcode them if you wish.
+
+Any pull requests will be reviewed. Please add :D
 
 ## Authors
 

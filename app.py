@@ -11,6 +11,12 @@ app = flask.Flask(__name__)
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
+whitelisted_domains = [
+    "example.com",
+    "reddit.com",
+    "downloadmoreram.com"
+]
+
 # Attempt to load the required params from env.
 # These should be loaded from the docker deploy script
 try:
@@ -120,11 +126,7 @@ def home():
 def spider_start():
     # Setting up some message for the response
     param = 'url'
-    acceptance_strings = [
-        'wmic.ins',
-        'wawanesa.com',
-        'example.com'
-    ]
+
     resrict = "Resticted domain used in URL '{}'"
     example_json = "{\n  \"url\":\"https://xxx.com\"\n}"
 
@@ -136,7 +138,7 @@ def spider_start():
         if request.json['url']:
             requested_url = request.json['url']
             # Ensure that the url is within the whitelist
-            for match in acceptance_strings:
+            for match in whitelisted_domains:
                 if requested_url.endswith(match):
                     scan_id = register_and_scan(ZAP_URL, ZAP_PORT, requested_url)
                     return jsonify(scan_id)

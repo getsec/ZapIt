@@ -12,6 +12,8 @@ ZapIt
 |     |----> deploy.sh <-- Used for deploying flask and ZAP images
 |--> docs
 |     |----> API.md <-- API Documents for the Flask API front end
+|--> tests 
+      |----> run.py <-- Used for validation once stack is running
 |--> app.py <-- Flask API front end
 |--> DockerFile <-- Dockerfile for deploying the flask app
 |--> requirements.txt <-- Python requirements

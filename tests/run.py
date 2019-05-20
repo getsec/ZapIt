@@ -17,8 +17,6 @@ except KeyError:
     ZAP_URI = f"{ZAP_URL}:{ZAP_PORT}"
 
 
-
-
 def logs(result, msg):
     if result is True:
         print(f"{Fore.GREEN}PASS: {Style.RESET_ALL}{msg}")
@@ -117,4 +115,3 @@ if __name__ == '__main__':
     check_spider_progress(scan_id)
     check_spider_results(scan_id)
     check_scan_results(scan_id)
-

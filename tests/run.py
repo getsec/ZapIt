@@ -61,7 +61,7 @@ def check_spider_progress(scan_id):
             )
             if r.ok:
                 if int(r.json()['status']) > 90:
-                    msg = "{ZAP_URI}/api/v1/spider/progress - over 90%. Good enough"
+                    msg = f"{ZAP_URI}/api/v1/spider/progress - over 90%. Good enough"
                     result = True
                     logs(result, msg)
                     break

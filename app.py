@@ -13,10 +13,10 @@ logger.setLevel(logging.INFO)
 
 whitelisted_domains = [
     "example.com",
+    "ec2-35-183-35-255.ca-central-1.compute.amazonaws.com",
     "reddit.com",
     "downloadmoreram.com"
 ]
-
 # Attempt to load the required params from env.
 # These should be loaded from the docker deploy script
 try:
@@ -138,12 +138,20 @@ def spider_start():
         if request.json['url']:
             requested_url = request.json['url']
             # Ensure that the url is within the whitelist
-            for match in whitelisted_domains:
-                if requested_url.endswith(match):
-                    scan_id = register_and_scan(ZAP_URL, ZAP_PORT, requested_url)
-                    return jsonify(scan_id)
+
+            if requested_url in whitelisted_domains:
+                scan_id = register_and_scan(ZAP_URL, ZAP_PORT, requested_url)
+                return jsonify(scan_id)
+            # This is used incase the url looks like this
+            # "https://site.com/index/blash/shdisa"
+            # we still go to the site you request, but we need to validate
+            # only the domain first
+            elif requested_url.split('//')[1].split('/')[0] in whitelisted_domains:
+                scan_id = register_and_scan(ZAP_URL, ZAP_PORT, requested_url)
+                return jsonify(scan_id)
             else:
                 # if not return the error to the user
+    
                 logger.info(f"msg='User used restricted URL' target='{requested_url}") # NOQA
                 return resrict.format(requested_url)
 

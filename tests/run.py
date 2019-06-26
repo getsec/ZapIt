@@ -26,25 +26,20 @@ def logs(result, msg):
 
 def initiate_scan(domain):
     print("\nIntitate Scan Test.")
-    try:
-        r = requests.post(
-            f"{ZAP_URI}/api/v1/spider/start",
-            json={
-                'url': domain
-            })
-        if r.ok:
-            scan_id = r.json()['scan']
-            msg = f"{ZAP_URI}/api/v1/spider/start - Launched Scan"
-            result = True
-            logs(result, msg)
-            return scan_id
-        else:
-            msg = f"{ZAP_URI}/api/v1/spider/start - Non 200 Status Code"
-            result = False
-            logs(result, msg)
-    except Exception as msg:
+    r = requests.post(
+        f"{ZAP_URI}/api/v1/spider/start",
+        json={
+            'url': domain
+    })
+    if r.ok:
+        scan_id = r.json()['scan']
+        msg = f"{ZAP_URI}/api/v1/spider/start - Launched Scan"
+        result = True
+        logs(result, msg)
+        return scan_id
+    else:
+        msg = f"{ZAP_URI}/api/v1/spider/start - Non 200 Status Code"
         result = False
-        msg = str(msg)
         logs(result, msg)
 
 
@@ -68,7 +63,7 @@ def check_spider_progress(scan_id):
             else:
                 print("Non 200 code")
         except Exception as msg:
-            print("FAIL")
+            print(f"FAIL: {msg}")
 
 
 def check_spider_results(scan_id):
@@ -99,7 +94,8 @@ def check_scan_results(scan_id):
     req = requests.get(
         f"{ZAP_URI}/api/v1/scan/results"
     )
-    if len(req.json()['site']) > 1:
+    #print(len(req.json()['site']))
+    if len(req.json()['site']) > 0:
         msg = f"{ZAP_URI}/api/v1/scan/results - no issues"
         result = True
         logs(result, msg)

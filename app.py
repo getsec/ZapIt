@@ -6,27 +6,15 @@ from urllib.parse import urlparse
 from flask import request, abort, jsonify
 import logging
 
-
-app = flask.Flask(__name__)
-logger = logging.getLogger()
-logger.setLevel(logging.INFO)
-
 whitelisted_domains = [
     "example.com",
     "ec2-35-183-35-255.ca-central-1.compute.amazonaws.com",
     "reddit.com",
+    "wawanesa.com"
     "downloadmoreram.com"
 ]
-# Attempt to load the required params from env.
-# These should be loaded from the docker deploy script
-try:
-    ZAP_PORT = environ["ZAP_PORT"]
-    ZAP_URL = environ["ZAP_URL"]
-except KeyError:
-    error = "Could not get environment variables ZAP_URL or ZAP_PORT"
-    exit(error)
 
-# Used to enable passive scans, and launches spider
+# Used to enable passive scans, and launches spider             
 def register_and_scan(ZAP_URL, ZAP_PORT, requested_url):
     ZAP_SPIDER_SCAN = '/JSON/spider/action/scan'
     ZAP_REGISTER = "/JSON/pscan/action/setEnabled"
@@ -106,7 +94,6 @@ def full_report(ZAP_URL, ZAP_PORT):
         return "Error rendering request"
 
 
-# BEGIN API CALLS
 @app.route("/")
 def home():
     welcome = """
@@ -139,21 +126,24 @@ def spider_start():
             requested_url = request.json['url']
             # Ensure that the url is within the whitelist
 
-            if requested_url in whitelisted_domains:
-                scan_id = register_and_scan(ZAP_URL, ZAP_PORT, requested_url)
-                return jsonify(scan_id)
-            # This is used incase the url looks like this
-            # "https://site.com/index/blash/shdisa"
-            # we still go to the site you request, but we need to validate
-            # only the domain first
-            elif requested_url.split('//')[1].split('/')[0] in whitelisted_domains:
-                scan_id = register_and_scan(ZAP_URL, ZAP_PORT, requested_url)
-                return jsonify(scan_id)
-            else:
-                # if not return the error to the user
+            scan_id = register_and_scan(ZAP_URL, ZAP_PORT, requested_url)
+            return jsonify(scan_id)
+
+            # if requested_url in whitelisted_domains:
+            #     scan_id = register_and_scan(ZAP_URL, ZAP_PORT, requested_url)
+            #     return jsonify(scan_id)
+            # # This is used incase the url looks like this
+            # # "https://site.com/index/blash/shdisa"
+            # # we still go to the site you request, but we need to validate
+            # # only the domain first
+            # elif requested_url.split('//')[1].split('/')[0] in whitelisted_domains:
+            #     scan_id = register_and_scan(ZAP_URL, ZAP_PORT, requested_url)
+            #     return jsonify(scan_id)
+            # else:
+            #     # if not return the error to the user
     
-                logger.info(f"msg='User used restricted URL' target='{requested_url}") # NOQA
-                return resrict.format(requested_url)
+            #     logger.info(f"msg='User used restricted URL' target='{requested_url}") # NOQA
+            #     return resrict.format(requested_url)
 
         else:
             return f"No {param} Parameter passed"
@@ -216,6 +206,23 @@ def scan_results():
 
 
 if __name__ == '__main__':
+    app = flask.Flask(__name__)
+    logger = logging.getLogger()
+    logger.setLevel(logging.INFO)
+
+    # load env vars
+    # these should be exported from the deploy script.
+    try:
+        ZAP_PORT = environ["ZAP_PORT"]
+        ZAP_URL = environ["ZAP_URL"]
+    except KeyError as msg:
+        error = "issue loading env - check log for more"
+        logging.error(error)
+        logging.error("Excecption caught: {msg}")
+        exit(error)
+    
+    ZAP = 
+
     app.run(host='0.0.0.0', port=5000, debug=True)
     logger.info(f"msg='Succesfully started' target='{ZAP_URL}:{ZAP_PORT}'")
     print(f"msg='Succesfully started' target='{ZAP_URL}:{ZAP_PORT}'")

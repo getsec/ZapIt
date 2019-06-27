@@ -14,17 +14,15 @@ zap = ZAPv2()
 
 @app.route("/")
 def home():
-    welcome = """
-        <h1>
-            Welcome Friends
-        </h1>
-
-        <p>
-            Hey There. I'm sure you are looking for some documentation. No problem. I got
-                <a href="https://github.com/getsec/ZapIt"> you</a>
+    msg = u"""<html>
+        <title> 👺 ZAP 👺 </title>
+        <h1> Welcome to the wonderful world of stuff 👺</h1>
+        <p> <i> Documentation </i>
+            <a href="https://github.com/getsec/ZapIt">📖</a>
         </p>
-    """
-    return welcome
+        """
+    return msg
+
 
 
 @app.route("/api/v1/spider/start", methods=["POST"])

@@ -1,87 +1,97 @@
 """
 ZAP API Python Wrapper
 Development Stage - not fit for production
+
+# * USE CASE!
+Data needed from customer
+- Target
+- Authentication Type
+    - Authentication Params
+- Backend Infrastructure in our format
+    - Web Service   (apache)
+    - Web Framework (Tomcat)
+    - DB            (mysql, oracle, mssql)
 """
 
 import zapv2
 import time
-from pprint import pprint
+import sys
 import uuid
-import urllib.parse
 
 
-def register_target(target):
+
+
+def initialize(target):
+    """Used to initialize the scan. Enable all passive scanners
+    
+    Arguments:
+        target {str} -- url: https://example.com
+    
+    Returns:
+        success/failure
+    """
+    # Sets default user agent
+    zap.core.set_option_default_user_agent(
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/74.0.3729.169 Safari/537.36"
+    )
+    # enables all passive scanners
+    zap.pscan.enable_all_scanners()
+
     open_url = zap.urlopen(target)
-    return open_url
+    
+    # ensures there is actual payload
+    if len(open_url) > 1:
+        return True
+    else:
+        return False
 
-# Create new context
-def create_context():
+
+def launch_pscan(target):
+    # Passive scan just gets data from spider
+    id = zap.spider.scan(
+        url=target,
+        recurse=True
+    )
+    return id
+
+
+def create_context(target):
     label = str(uuid.uuid4()).split('-')[0]
     context_name = target.split('//')[1].split('.')[0] + label
     context_id = zap.context.new_context(
         context_name
     )
-    return context_id
 
-# form based auth example
-def set_authentication(target, login_uri, context_id, 
-                       login_request_data, login_indicator):
-    """Sets form based authentication
-    
-    Arguments:
-        target {str} --this is set
-        login_uri {str} -- uri for the login page (login.html)
-        context_id {str} -- context id for sesions
-        login_request_data {str} -- unparsed url data (username=x&password=y&submit=submit)
-        login_indicator {str} -- regex capture to ensure succesful
-    """
-    login_request_data = urllib.parse.quote(login_request_data)
-    form_auth_cfg = f"loginUrl={target}/{login_uri}&"
-    form_auth_cfg += f"loginRequestData={login_request_data}"
-
-    auth = zap.authentication.set_authentication_method(
-        contextid=context_id,
-        authmethodname='formBasedAuthentication',
-        authmethodconfigparams=form_auth_cfg
+    # include all technologies
+    zap.context.include_all_context_technologies(
+        contextname=context_name
     )
-    if auth == "OK":
-        return auth
+
+    # include target in context
+    include_regex = target + '*'
+    set_include_regex = zap.context.include_in_context(
+        contextname=context_name,
+        regex=include_regex
+    )
+    if set_include_regex == 'OK':
+        return context_id, context_name
     else:
-        return "Authentication parameters failed"
-    # TODO: Set login indicator
+        exit('error setting include in context regex')
 
-
-
-# Launch spider
-def launch_spider(target):
-    scanid = zap.spider.scan(target)
-    while (int(zap.spider.status(scanid)) < 100):
-        print('Spider progress %: ' + zap.spider.status(scanid))
-        time.sleep(2)
-    return scanid
-
-def launch_active_scan(target):
-    scanid = zap.ascan.scan(target)
-    while (int(zap.ascan.status(scanid)) < 100):
-        print('Scan progress %: ' + zap.ascan.status(scanid))
-        time.sleep(5)
-    return scanid
 
 
 if __name__ in '__main__':
-    target = 'https://example.com'
-    zap.urlopen(target)
+    target = 'https://wawanesa.com'
     zap = zapv2.ZAPv2(
         proxies={
-            'http': 'http://127.0.0.1:1337',
-            'https': 'http://127.0.0.1:1337'
+            'http': 'http://127.0.0.1:8080',
+            'https': 'http://127.0.0.1:8080'
         }
     )
-    # TODO: ensure the target is part of this
-    context_id = create_context()
-    launch_spider(target)
-    launch_active_scan(target)
-    login_request_data = "username=ngetty&password=mypass123&submit=submit"
-    login_indicator = "*succsesful login*"
 
-    auth = set_authentication(target, "login.html", context_id, login_request_data, login_indicator)
+    # Initialize and set passive scanner for spider
+    if initialize(target) == False:
+        sys.exit("Failure to initialize target")
+    
+    # Launch spider
+    launch_pscan(target)

@@ -3,7 +3,13 @@ import requests
 from sys import exit
 from os import environ
 from urllib.parse import urlparse
-from flask import request, abort, jsonify, Response
+from flask import (
+    request, 
+    abort, 
+    jsonify, 
+    Response
+)
+from flask import render_template
 import logging
 from zapv2 import ZAPv2
 
@@ -14,14 +20,7 @@ zap = ZAPv2()
 
 @app.route("/")
 def home():
-    msg = u"""<html>
-        <title> 👺 ZAP 👺 </title>
-        <h1> Welcome to the wonderful world of stuff 👺</h1>
-        <p> <i> Documentation </i>
-            <a href="https://github.com/getsec/ZapIt">📖</a>
-        </p>
-        """
-    return msg
+    return  render_template('home.html')
 
 
 

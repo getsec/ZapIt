@@ -4,6 +4,12 @@ __pycache__/
 *$py.class
 logs/*
 logs
+
+#custom
+dev
+dev/*
+*log*
+
 # C extensions
 *.so
 key.pem

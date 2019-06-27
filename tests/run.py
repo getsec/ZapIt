@@ -7,14 +7,7 @@ from colorama import Fore, Back, Style
 domain = "https://example.com"
 
 
-try:
-    ZAP_PORT = environ["ZAP_PORT"]
-    ZAP_URL = environ["ZAP_URL"]
-    ZAP_URI = f"{ZAP_URL}:{ZAP_PORT}"
-except KeyError:
-    ZAP_URL = "http://localhost"
-    ZAP_PORT = "5000"
-    ZAP_URI = f"{ZAP_URL}:{ZAP_PORT}"
+API_URI = "http://localhost:5000"
 
 
 def logs(result, msg):
@@ -28,19 +21,20 @@ def initiate_scan(domain):
     print("\nIntitate Scan Test.")
     try:
         r = requests.post(
-            f"{ZAP_URI}/api/v1/spider/start",
+            f"{API_URI}/api/v1/spider/start",
             json={
                 'url': domain
             })
         if r.ok:
-            scan_id = r.json()['scan']
-            msg = f"{ZAP_URI}/api/v1/spider/start - Launched Scan"
+            scan_id = r.json()['scan_id']
+            msg = f"{API_URI}/api/v1/spider/start - Launched Scan"
             result = True
             logs(result, msg)
             return scan_id
         else:
-            msg = f"{ZAP_URI}/api/v1/spider/start - Non 200 Status Code"
+            msg = f"{API_URI}/api/v1/spider/start - returned code '{r.status_code}'"
             result = False
+            logs(result, r.content)
             logs(result, msg)
     except Exception as msg:
         result = False
@@ -52,41 +46,44 @@ def check_spider_progress(scan_id):
     print("\nCheck Progress Test")
     while True:
         try:
-            progres = 0
+            # progres = 0
             r = requests.post(
-                f"{ZAP_URI}/api/v1/spider/progress",
+                f"{API_URI}/api/v1/spider/progress",
                 json={
                     'id': scan_id
                 }
             )
+            print(f"Progress: {r.json()['progress']}")
             if r.ok:
-                if int(r.json()['status']) > 90:
-                    msg = f"{ZAP_URI}/api/v1/spider/progress - over 90%. Good enough"
+                if int(r.json()['progress']) > 90:
+                    msg = f"{API_URI}/api/v1/spider/progress - over 90%. Good enough"
                     result = True
                     logs(result, msg)
                     break
             else:
                 print("Non 200 code")
         except Exception as msg:
-            print("FAIL")
+            result = False
+            msg = f"Error loading spider progress uri: {API_URI}/api/v1/spider/progress"
+            logs(result, msg)
 
 
 def check_spider_results(scan_id):
     print("\nCheck Spider Results Test.")
     try:
         req = requests.post(
-            f"{ZAP_URI}/api/v1/spider/results",
+            f"{API_URI}/api/v1/spider/results",
             json={
                 'id': scan_id
             }
         )
-        if len(req.json()['results']) > 1:
+        if req.ok:
             result = True
-            msg = f"{ZAP_URI}/api/v1/spider/results - Results found"
+            msg = f"{API_URI}/api/v1/spider/results - Results found"
             logs(result, msg)
         else:
             result = False
-            msg = f"{ZAP_URI}/api/v1/spider/results - No results found. Ensure no issues"
+            msg = f"{API_URI}/api/v1/spider/results - No results found. Ensure no issues"
             logs(result, msg)
     except Exception as msg:
         msg = str(msg)
@@ -94,18 +91,18 @@ def check_spider_results(scan_id):
         logs(result, msg)
 
 
-def check_scan_results(scan_id):
+def check_scan_results():
     print("\nCheck Scan Results Test.")
     req = requests.get(
-        f"{ZAP_URI}/api/v1/scan/results"
+        f"{API_URI}/api/v1/scan/results"
     )
-    if len(req.json()['site']) > 1:
-        msg = f"{ZAP_URI}/api/v1/scan/results - no issues"
+    if req.ok:
+        msg = f"{API_URI}/api/v1/scan/results - no issues"
         result = True
         logs(result, msg)
     else:
         print(req.json())
-        msg = f"{ZAP_URI}/api/v1/scan/results - No generated results found"
+        msg = f"{API_URI}/api/v1/scan/results - No generated results found"
         result = False
         logs(result, msg)
 
@@ -114,4 +111,4 @@ if __name__ == '__main__':
     scan_id = initiate_scan(domain)
     check_spider_progress(scan_id)
     check_spider_results(scan_id)
-    check_scan_results(scan_id)
+    check_scan_results()

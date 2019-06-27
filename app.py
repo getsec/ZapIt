@@ -117,7 +117,7 @@ def spider_results():
 def scan_results():
     # Returns full results.
     try:
-        output = zap.core.alerts()
+        output = zap.alert.alerts()
         return jsonify(output)
     except Exception:
         return abort(500)

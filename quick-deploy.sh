@@ -4,7 +4,7 @@ IP_ADDR="127.0.0.1"
 FLASK_IMAGE="flask:latest"
 ZAP_PORT="8080"
 FLASK_PORT="5000"
-
+OPTION=$1
 
 function deploy_flask () {
     docker build -t $FLASK_IMAGE .
@@ -17,16 +17,28 @@ function deploy_zap () {
     echo "ZAP Deployed: http://$ZAP_IP:$ZAP_PORT"
 }
 
-echo "Currently deploying ZAP"
-deploy_zap
 
 
-# Detects whether FLASK
-if [[ "$(docker images -q $FLASK_IMAGE 2> /dev/null)" == "" ]]; then
-    echo "Attempting to launch flask with tag $FLASK_IMAGE"
-    deploy_flask
+
+if [ "$OPTION" = "flask" ]; then
+    if [[ "$(docker images -q $FLASK_IMAGE 2> /dev/null)" == "" ]]; then
+        deploy_flask
+    else
+        echo "[$FLASK_IMAGE] does exist. Will not re-build"
+    fi
+elif [ "$OPTION" = "zap" ]; then
+    deploy_zap
+elif [ "$OPION" = "all" ]; then
+     if [[ "$(docker images -q $FLASK_IMAGE 2> /dev/null)" == "" ]]; then
+        deploy_flask
+    else
+        echo "[$FLASK_IMAGE] does exist. Will not re-build"
+    fi
+    deploy_zap
 else
-    echo "[$FLASK_IMAGE] does exist. Will not re-build"
+    echo "use flask/zap/all arg"
 fi
+
+
 
 

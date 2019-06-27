@@ -3,95 +3,13 @@ import requests
 from sys import exit
 from os import environ
 from urllib.parse import urlparse
-from flask import request, abort, jsonify
+from flask import request, abort, jsonify, Response
 import logging
+from zapv2 import ZAPv2
 
-whitelisted_domains = [
-    "example.com",
-    "ec2-35-183-35-255.ca-central-1.compute.amazonaws.com",
-    "reddit.com",
-    "wawanesa.com"
-    "downloadmoreram.com"
-]
-
-# Used to enable passive scans, and launches spider             
-def register_and_scan(ZAP_URL, ZAP_PORT, requested_url):
-    ZAP_SPIDER_SCAN = '/JSON/spider/action/scan'
-    ZAP_REGISTER = "/JSON/pscan/action/setEnabled"
-    zap_register_target_uri = f"{ZAP_URL}:{ZAP_PORT}{ZAP_REGISTER}"
-    zap_scan_spider_uri = f"{ZAP_URL}:{ZAP_PORT}{ZAP_SPIDER_SCAN}"
-    register = requests.post(
-        zap_register_target_uri,
-        data={
-            "zapapiformat": "JSON",
-            "formMethod": "POST",
-            "enabled": "True"
-        }
-    )
-    if register.status_code == 200:
-        logger.info(f"msg='Scan succesfully launched' target='{requested_url}'")
-    else:
-        logger.error(f"msg='Scan initation failed' target='{register.content}'")
-
-    post_data = {
-        'zapapiformat': 'JSON',
-        'formMethod': 'POST',
-        'url': requested_url,
-        'maxChildren': '',
-        'recurse': 'True',
-        'contextName': '',
-        'subtreeOnly': ''
-    }
-
-    data = requests.post(zap_scan_spider_uri, data=post_data)
-    if data.status_code == 200:
-        logger.info(f"msg='Scan succesfully launched' target='{requested_url}'")
-        return data.json()
-
-    else:
-        abort(500)
-
-
-# Used for getting the status of the spider.
-def post_scan_status(ZAP_URL, ZAP_PORT, scan_id):
-    ZAP_SPIDER_STATUS = '/JSON/spider/view/status'
-    zap_scan_spider_status = f"{ZAP_URL}:{ZAP_PORT}{ZAP_SPIDER_STATUS}"
-    post_data = {
-        'zapapiformat': 'JSON',
-        'formMethod': 'POST',
-        'scanId': scan_id
-    }
-    progress = requests.post(zap_scan_spider_status, data=post_data)
-    if progress.status_code == 200:
-        return progress.json()
-    else:
-        logger.error(f"msg='returned non-200' error='{zap_scan_spider_status}'")
-        logger.error(progress.status_code, progress.content)
-
-
-# Used for downloading the results of the spider
-def post_scan_results(ZAP_URL, ZAP_PORT, scan_id):
-    ZAP_SPIDER_RESULTS = '/JSON/spider/view/results'
-    zap_scan_spider_results = f"{ZAP_URL}:{ZAP_PORT}{ZAP_SPIDER_RESULTS}"
-    post_data = {
-        'zapapiformat': 'JSON',
-        'formMethod': 'json',
-        'scanId': scan_id
-    }
-    results = requests.post(zap_scan_spider_results, data=post_data)
-    return results.json()
-
-
-# Used for downloading the entire report
-# This will send back passive scan results.
-def full_report(ZAP_URL, ZAP_PORT):
-    ZAP_SCAN_RESULTS = "/OTHER/core/other/jsonreport/?formMethod=GET"
-    zap_vulnerability_results = f"{ZAP_URL}:{ZAP_PORT}{ZAP_SCAN_RESULTS}"
-    results = requests.get(zap_vulnerability_results)
-    if results.status_code == 200:
-        return results.json()
-    else:
-        return "Error rendering request"
+# These two need to be here. Dont ask me why
+app = flask.Flask(__name__)
+zap = ZAPv2()
 
 
 @app.route("/")
@@ -126,103 +44,99 @@ def spider_start():
             requested_url = request.json['url']
             # Ensure that the url is within the whitelist
 
-            scan_id = register_and_scan(ZAP_URL, ZAP_PORT, requested_url)
-            return jsonify(scan_id)
-
-            # if requested_url in whitelisted_domains:
-            #     scan_id = register_and_scan(ZAP_URL, ZAP_PORT, requested_url)
-            #     return jsonify(scan_id)
-            # # This is used incase the url looks like this
-            # # "https://site.com/index/blash/shdisa"
-            # # we still go to the site you request, but we need to validate
-            # # only the domain first
-            # elif requested_url.split('//')[1].split('/')[0] in whitelisted_domains:
-            #     scan_id = register_and_scan(ZAP_URL, ZAP_PORT, requested_url)
-            #     return jsonify(scan_id)
-            # else:
-            #     # if not return the error to the user
-    
-            #     logger.info(f"msg='User used restricted URL' target='{requested_url}") # NOQA
-            #     return resrict.format(requested_url)
-
+            scan_id = zap.spider.scan(
+                url=requested_url,
+                recurse=True
+            )
+            data = {"scan_id": scan_id}
+            return jsonify(data)
         else:
-            return f"No {param} Parameter passed"
+            error = {
+                "error": f"Parameter '{param}' missing"
+            }
+            return jsonify(error)
     except KeyError:
-        return f"Incorrect synax. Please post: \n{example_json}"
+        error = {
+            "error": "Incorrect synaax. \"{\"url:\"https://example.com\"}"
+        }
+        return jsonify(error)
 
 
 @app.route("/api/v1/spider/progress", methods=["POST"])
 def spider_progress():
     param = 'id'
-    example_json = "{\n  \"id\":\"4\"\n}"
+    example_json = {"id" : "#"}
+    error = {
+        "error": f"incorrect request payload. use suggested payload",
+        "suggested_payload": example_json
+    }
     # Ensure request includes json data
     if not request.json:
         return "No json found"
         abort(400)
     # ensure that the ID param is in the request
     try:
-        if request.json['id']:
+        if request.json['id'].isdigit():
             scan_id = request.json['id']
-            scan_progress = post_scan_status(ZAP_URL, ZAP_PORT, scan_id)
-            return jsonify(scan_progress)
+            scan_progress = zap.spider.status(
+                scanid=scan_id
+            )
+            return_data = {
+                "progress": scan_progress
+            }
+            return jsonify(return_data)
         else:
-            return f"No {param} Parameter passed"
+            return jsonify(error)
     except KeyError:
-        return f"Incorrect synax.\nmethod = POST\nexample \n{example_json}"
+        return jsonify(error)
 
 
 @app.route("/api/v1/spider/results", methods=["POST"])
 def spider_results():
-    example_json = "{\n  \"id\":\"2\"\n}"
-    msg = f"missing id or format param in request\n\n{example_json}"
+    example_json = {"id":"#"}
+    error = {
+        "error": f"incorrect request payload. use suggested payload",
+        "suggested_payload": example_json
+    }
+    
     if not request.json:
-        abort(400)
+        abort(Response(error))
 
     try:
-        if request.json['id']:
+        if request.json['id'].isdigit():
             scan_id = request.json['id']
-            results = post_scan_results(ZAP_URL, ZAP_PORT, scan_id)
-            total_results = len(results['results'])
-            u = urlparse(results['results'][0])
-            base = f"{u.scheme}//{u.netloc}"
+            results = zap.spider.results(
+                scanid=scan_id
+            )
 
-            logger.info(f"msg='Total Results' target='{base}' results='{total_results}'")
-            f"msg='Total Results' target='{base}' results='{total_results}'"
             return jsonify(results)
         else:
-            return msg
+            return jsonify(error)
     except KeyError:
-        return msg
+        return jsonify(error)
 
 
 @app.route("/api/v1/scan/results", methods=["GET"])
 def scan_results():
     # Returns full results.
     try:
-        output = full_report(ZAP_URL, ZAP_PORT)
+        output = zap.core.alerts()
         return jsonify(output)
     except Exception:
         return abort(500)
 
 
 if __name__ == '__main__':
-    app = flask.Flask(__name__)
-    logger = logging.getLogger()
-    logger.setLevel(logging.INFO)
+    
 
     # load env vars
     # these should be exported from the deploy script.
     try:
-        ZAP_PORT = environ["ZAP_PORT"]
-        ZAP_URL = environ["ZAP_URL"]
+        ZAP_PORT = '8080' # environ["ZAP_PORT"]
+        ZAP_URL = 'http://127.0.0.1' # environ["ZAP_URL"]
     except KeyError as msg:
         error = "issue loading env - check log for more"
-        logging.error(error)
-        logging.error("Excecption caught: {msg}")
         exit(error)
     
-    ZAP = 
 
     app.run(host='0.0.0.0', port=5000, debug=True)
-    logger.info(f"msg='Succesfully started' target='{ZAP_URL}:{ZAP_PORT}'")
-    print(f"msg='Succesfully started' target='{ZAP_URL}:{ZAP_PORT}'")

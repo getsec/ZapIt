@@ -33,6 +33,30 @@ if r.ok:
 else:
     logger.error('msg="failed to connect to ZAP"')
 
+def auth_config_setup(ZAP_URL, ZAP_PORT, auth_config_params):
+    """Setup authentication config
+    
+    Arguments:
+        ZAP_URL {str} -- [description]
+        ZAP_PORT {str} -- [description]
+        auth_config_params {dict} --
+        {
+            "method": "formBasedAuthentication"/ "scriptBasedAuthentication"/ "httpAuthentication"/ "manualAuthentication"/"jsonBasedAuthentication",
+            "login_indicator": {
+                "context_id": "id",
+                "login_regex": "regexstr"
+            },
+            "form_login_params": "login_params"
+        }
+    Returns:
+        [type] -- [description]
+    """
+    #! TODO: Need to setup auth config
+    if auth_config_params is not None:
+        return True
+    else:
+        return "No auth params"
+
 # Used to enable passive scans, and launches spider
 def register_and_scan(ZAP_URL, ZAP_PORT, requested_url):
     ZAP_SPIDER_SCAN = '/JSON/spider/action/scan'

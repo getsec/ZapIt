@@ -3,7 +3,7 @@ import requests
 from sys import exit
 from os import environ
 from urllib.parse import urlparse
-from flask import request, abort, jsonify
+from flask import request, abort, jsonify, Response
 import logging
 
 
@@ -20,11 +20,18 @@ whitelisted_domains = [
 # Attempt to load the required params from env.
 # These should be loaded from the docker deploy script
 try:
-    ZAP_PORT = environ["ZAP_PORT"]
-    ZAP_URL = environ["ZAP_URL"]
+    # infering ur have zap.sh
+    ZAP_PORT = "8080" #environ["ZAP_PORT"]
+    ZAP_URL = "http://localhost" # environ["ZAP_URL"]
 except KeyError:
     error = "Could not get environment variables ZAP_URL or ZAP_PORT"
     exit(error)
+
+r= requests.get(f"{ZAP_URL}:{ZAP_PORT}")
+if r.ok:
+    logger.info('msg="succesfully connected to ZAP"')
+else:
+    logger.error('msg="failed to connect to ZAP"')
 
 # Used to enable passive scans, and launches spider
 def register_and_scan(ZAP_URL, ZAP_PORT, requested_url):
@@ -47,7 +54,7 @@ def register_and_scan(ZAP_URL, ZAP_PORT, requested_url):
 
     post_data = {
         'zapapiformat': 'JSON',
-        'formMethod': 'POST',
+        #'formMethod': 'POST',
         'url': requested_url,
         'maxChildren': '',
         'recurse': 'True',
@@ -122,6 +129,13 @@ def home():
     return welcome
 
 
+@app.route("/api/v1/auth/configure", methods=["POST"])
+def auth_configure():
+    if not request.json:
+        abort(Response("Error - Payload not json"))
+
+    
+
 @app.route("/api/v1/spider/start", methods=["POST"])
 def spider_start():
     # Setting up some message for the response
@@ -139,21 +153,21 @@ def spider_start():
             requested_url = request.json['url']
             # Ensure that the url is within the whitelist
 
-            if requested_url in whitelisted_domains:
-                scan_id = register_and_scan(ZAP_URL, ZAP_PORT, requested_url)
-                return jsonify(scan_id)
+            # if requested_url in whitelisted_domains:
+            scan_id = register_and_scan(ZAP_URL, ZAP_PORT, requested_url)
+            return jsonify(scan_id)
             # This is used incase the url looks like this
             # "https://site.com/index/blash/shdisa"
             # we still go to the site you request, but we need to validate
             # only the domain first
-            elif requested_url.split('//')[1].split('/')[0] in whitelisted_domains:
-                scan_id = register_and_scan(ZAP_URL, ZAP_PORT, requested_url)
-                return jsonify(scan_id)
-            else:
-                # if not return the error to the user
+            # elif requested_url.split('//')[1].split('/')[0] in whitelisted_domains:
+            #    scan_id = register_and_scan(ZAP_URL, ZAP_PORT, requested_url)
+            #    return jsonify(scan_id)
+            # else:
+            #     # if not return the error to the user
     
-                logger.info(f"msg='User used restricted URL' target='{requested_url}") # NOQA
-                return resrict.format(requested_url)
+            #     logger.info(f"msg='User used restricted URL' target='{requested_url}") # NOQA
+            #     return resrict.format(requested_url)
 
         else:
             return f"No {param} Parameter passed"

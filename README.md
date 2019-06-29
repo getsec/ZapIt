@@ -55,5 +55,3 @@ Any pull requests will be reviewed. Please add :D
 ## Acknowledgments
 
 * Big thumbs up to the boys at OWASP for creating ZAP
-
-ASD

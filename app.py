@@ -16,7 +16,7 @@ from zapv2 import ZAPv2
 # These two need to be here. Dont ask me why
 app = flask.Flask(__name__)
 zap = ZAPv2()
-
+TEMPLATES_AUTO_RELOAD = True
 
 @app.route("/")
 def home():

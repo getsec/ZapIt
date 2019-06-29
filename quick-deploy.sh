@@ -26,6 +26,11 @@ if [ "$OPTION" = "flask" ]; then
     else
         echo "[$FLASK_IMAGE] does exist. Will not re-build"
     fi
+elif [ "$OPTION" = "flaskl" ]; then
+    export FLASK_APP=app.py
+    export FLASK_ENV=development
+
+    flask run
 elif [ "$OPTION" = "zap" ]; then
     deploy_zap
 elif [ "$OPION" = "all" ]; then

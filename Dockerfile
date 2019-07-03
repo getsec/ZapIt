@@ -1,7 +1,5 @@
 FROM python:3.7-alpine
 
-LABEL maintainer "ngetty@wawanesa.com"
-
 COPY . /app
 
 WORKDIR /app
@@ -12,4 +10,3 @@ ENTRYPOINT ["python"]
 
 CMD ["app.py"]
 
-EXPOSE 5000

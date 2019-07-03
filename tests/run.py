@@ -7,8 +7,8 @@ from colorama import Fore, Back, Style
 domain = "https://example.com"
 
 
-API_URI = "http://127.0.0.1:5000"
-
+API_URI = environ['FLASK']
+print(API_URI)
 
 def logs(result, msg):
     if result is True:
@@ -46,7 +46,7 @@ def check_spider_progress(scan_id):
     print("\nCheck Progress Test")
     while True:
         try:
-            # progres = 0
+            time.sleep(5)
             r = requests.post(
                 f"{API_URI}/api/v1/spider/progress",
                 json={

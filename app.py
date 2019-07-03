@@ -13,14 +13,21 @@ from flask import render_template
 import logging
 from zapv2 import ZAPv2
 
-# These two need to be here. Dont ask me why
+# Basic config to launch the flask application
 app = flask.Flask(__name__)
-# TODO: Clean this up and document it
+app.run(host='0.0.0.0', port=5000, debug=True)
+
+
+# Base config for zap
+# load ZAPS URL from the env vars
 ZAP = environ["ZAP"]
+ZAPTLS = environ['ZAPTLS']
+# You need both http and https proxies.
+# This is set by the deploy script and sourced in the environment variables.
 zap = ZAPv2(
-    proxies= {"http": ZAP, "https": ZAP}
+    proxies= {"http": ZAP, "https": ZAPTLS}
 )
-TEMPLATES_AUTO_RELOAD = True
+
 
 @app.route("/")
 def home():
@@ -127,19 +134,5 @@ def scan_results():
         return abort(500)
 
 
-if __name__ == '__main__':
-    
 
-    # load env vars
-    # these should be exported from the deploy script
-    # .
-    ZAP = environ["ZAP"]
-    # try:
-    #     ZAP_PORT = '8080' # environ["ZAP_PORT"]
-    #     ZAP_URL = 'http://127.0.0.1' # environ["ZAP_URL"]
-    # except KeyError as msg:
-    #     error = "issue loading env - check log for more"
-    #     exit(error)
-    
 
-    app.run(host='0.0.0.0', port=5000, debug=True)

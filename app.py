@@ -13,6 +13,10 @@ from flask import render_template
 import logging
 from zapv2 import ZAPv2
 
+def get_redirect_url(target):
+    r = requests.get(target, verify=False)
+    return r.url
+
 # Basic config to launch the flask application
 app = flask.Flask(__name__)
 
@@ -52,7 +56,11 @@ def spider_start():
     try:
         # Ensure the url param was sent to the api
         if request.json['url']:
-            requested_url = request.json['url']
+            # 
+            target = request.json['url']
+            requested_url = get_redirect_url(target)
+            app.logger.info(f"User requested URL: {target}")
+            app.logger.info(f"URL Redirect: {requested_url}")
             # Ensure that the url is within the whitelist
 
             scan_id = zap.spider.scan(

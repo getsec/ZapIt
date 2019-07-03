@@ -15,7 +15,7 @@ from zapv2 import ZAPv2
 
 # Basic config to launch the flask application
 app = flask.Flask(__name__)
-app.run(host='0.0.0.0', port=5000, debug=True)
+
 
 
 # Base config for zap
@@ -25,7 +25,10 @@ ZAPTLS = environ['ZAPTLS']
 # You need both http and https proxies.
 # This is set by the deploy script and sourced in the environment variables.
 zap = ZAPv2(
-    proxies= {"http": ZAP, "https": ZAPTLS}
+    proxies= {
+        "http": "http://localhost:8080", 
+        "https": "https://localhost:8080"
+    }
 )
 
 
@@ -134,5 +137,7 @@ def scan_results():
         return abort(500)
 
 
+if __name__ in "__main__":
+    app.run(host='0.0.0.0', port=5000, debug=True)
 
 

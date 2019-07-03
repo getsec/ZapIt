@@ -1,15 +1,11 @@
 import flask
-import logging
 import requests
-from sys import exit
-from os import environ
 from zapv2 import ZAPv2
-from urllib.parse import urlparse
 from flask import (
     app,
-    request, 
-    abort, 
-    jsonify, 
+    request,
+    abort,
+    jsonify,
     Response,
     render_template
 )
@@ -17,10 +13,10 @@ from flask import (
 
 def get_redirect_url(target):
     """Takes in url, spits out redirect
-    
+
     Arguments:
         target {str} -- requested url
-    
+
     Returns:
         [str] -- url 302 redirect
     """
@@ -34,7 +30,7 @@ app = flask.Flask(__name__)
 # TODO: Fix the hardcode
 zap = ZAPv2(
     proxies= {
-        "http": "http://localhost:8080", 
+        "http": "http://localhost:8080",
         "https": "https://localhost:8080"
     }
 )
@@ -43,7 +39,7 @@ zap = ZAPv2(
 @app.route("/")
 def home():
     """Loads the home page
-    
+
     Returns:
         [obect] -- [template]
     """
@@ -53,15 +49,15 @@ def home():
 @app.route("/docs")
 def docs():
     return """
-    <meta http-equiv="refresh" content="0; URL='https://github.com/getsec/ZapIt/blob/master/docs/Documentation.md'"/>  
+    <meta http-equiv="refresh" content="0; URL='https://github.com/getsec/ZapIt/blob/master/docs/Documentation.md'"/>
     """
 
 
 @app.route("/api/v1/spider/start", methods=["POST"])
 def spider_start():
     """[summary]
-    
-    Params: 
+
+    Params:
         [dict] -- url dict
             {
                 'url': 'http://example.com'
@@ -82,7 +78,7 @@ def spider_start():
     try:
         # Ensure the url param was sent to the api
         if request.json['url']:
-            # 
+            #
             target = request.json['url']
             requested_url = get_redirect_url(target)
             app.logger.info(f"User requested URL: {target}")
@@ -110,7 +106,7 @@ def spider_start():
 @app.route("/api/v1/spider/progress", methods=["POST"])
 def spider_progress():
     """This function gets the progress of the current spider.
-    
+
     Params:
         [dict] -- scan id dict
             {
@@ -153,7 +149,7 @@ def spider_progress():
 @app.route("/api/v1/spider/results", methods=["POST"])
 def spider_results():
     """Dumps results of the spider
-    
+
     Params:
         [dict] -- ID of the scan
             {
@@ -168,7 +164,7 @@ def spider_results():
         "error": f"incorrect request payload. use suggested payload",
         "suggested_payload": example_json
     }
-    
+
     if not request.json:
         abort(Response(error))
 
@@ -189,7 +185,7 @@ def spider_results():
 @app.route("/api/v1/scan/results", methods=["GET"])
 def scan_results():
     """Returns all scan results
-    
+
     Returns:
         [dict] -- All results found
     """

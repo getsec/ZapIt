@@ -3,11 +3,11 @@ import time
 from os import environ
 from colorama import Fore, Back, Style
 
-
+# TODO: Clean this up and document
 domain = "https://example.com"
 
 
-API_URI = "http://localhost:5000"
+API_URI = "http://127.0.0.1:5000"
 
 
 def logs(result, msg):

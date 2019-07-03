@@ -15,7 +15,11 @@ from zapv2 import ZAPv2
 
 # These two need to be here. Dont ask me why
 app = flask.Flask(__name__)
-zap = ZAPv2()
+# TODO: Clean this up and document it
+ZAP = environ["ZAP"]
+zap = ZAPv2(
+    proxies= {"http": ZAP, "https": ZAP}
+)
 TEMPLATES_AUTO_RELOAD = True
 
 @app.route("/")
@@ -43,7 +47,7 @@ def spider_start():
 
             scan_id = zap.spider.scan(
                 url=requested_url,
-                recurse=True
+                recurse=False
             )
             data = {"scan_id": scan_id}
             return jsonify(data)
@@ -127,13 +131,15 @@ if __name__ == '__main__':
     
 
     # load env vars
-    # these should be exported from the deploy script.
-    try:
-        ZAP_PORT = '8080' # environ["ZAP_PORT"]
-        ZAP_URL = 'http://127.0.0.1' # environ["ZAP_URL"]
-    except KeyError as msg:
-        error = "issue loading env - check log for more"
-        exit(error)
+    # these should be exported from the deploy script
+    # .
+    ZAP = environ["ZAP"]
+    # try:
+    #     ZAP_PORT = '8080' # environ["ZAP_PORT"]
+    #     ZAP_URL = 'http://127.0.0.1' # environ["ZAP_URL"]
+    # except KeyError as msg:
+    #     error = "issue loading env - check log for more"
+    #     exit(error)
     
 
     app.run(host='0.0.0.0', port=5000, debug=True)

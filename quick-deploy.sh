@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# TODO: Ok, so this thing is fucked we need to fix it.
+# TODO: 
 
 # You can edit these if you want.
 IMG="owasp/zap2docker-bare"

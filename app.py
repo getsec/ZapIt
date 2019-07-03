@@ -1,13 +1,22 @@
+
+# Required libraries
 import flask
 import requests
-from zapv2 import ZAPv2
+import zapv2
 from flask import (
-    app,
     request,
     abort,
     jsonify,
     Response,
     render_template
+)
+# init flask & zap
+app = flask.Flask(__name__)
+zap = zapv2.ZAPv2(
+    proxies={
+        "http": "http://localhost:8080",
+        "https": "https://localhost:8080"
+    }
 )
 
 
@@ -23,18 +32,6 @@ def get_redirect_url(target):
     r = requests.get(target, verify=False)
     return r.url
 
-# Basic config to launch the flask application
-app = flask.Flask(__name__)
-
-
-# TODO: Fix the hardcode
-zap = ZAPv2(
-    proxies= {
-        "http": "http://localhost:8080",
-        "https": "https://localhost:8080"
-    }
-)
-
 
 @app.route("/")
 def home():
@@ -43,7 +40,7 @@ def home():
     Returns:
         [obect] -- [template]
     """
-    return  render_template('home.html')
+    return render_template('home.html')
 
 
 @app.route("/docs")
@@ -69,9 +66,6 @@ def spider_start():
     # Setting up some message for the response
     param = 'url'
 
-    resrict = "Resticted domain used in URL '{}'"
-    example_json = "{\n  \"url\":\"https://xxx.com\"\n}"
-
     # If there is no JSON Response abort
     if not request.json:
         abort(400)
@@ -83,7 +77,6 @@ def spider_start():
             requested_url = get_redirect_url(target)
             app.logger.info(f"User requested URL: {target}")
             app.logger.info(f"URL Redirect: {requested_url}")
-            # Ensure that the url is within the whitelist
 
             scan_id = zap.spider.scan(
                 url=requested_url,
@@ -106,23 +99,20 @@ def spider_start():
 @app.route("/api/v1/spider/progress", methods=["POST"])
 def spider_progress():
     """This function gets the progress of the current spider.
-
     Params:
         [dict] -- scan id dict
             {
                 'id':'0'
             }
-
     Returns:
         [dict] -- [progress]
             {
                 'progress':%ofprogress
             }
     """
-    param = 'id'
-    example_json = {"id" : "#"}
+    example_json = {"id": "#"}
     error = {
-        "error": f"incorrect request payload. use suggested payload",
+        "error": "incorrect payload syntax.",
         "suggested_payload": example_json
     }
     # Ensure request includes json data
@@ -149,17 +139,16 @@ def spider_progress():
 @app.route("/api/v1/spider/results", methods=["POST"])
 def spider_results():
     """Dumps results of the spider
-
     Params:
         [dict] -- ID of the scan
             {
                 'id': #
             }
-
     Returns:
         [dict] -- Big ol list of sites
     """
-    example_json = {"id":"#"}
+
+    example_json = {"id": "#"}
     error = {
         "error": f"incorrect request payload. use suggested payload",
         "suggested_payload": example_json

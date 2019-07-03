@@ -1,22 +1,29 @@
 #!/bin/bash
-# TODO: Clean this up and document
+
+# You can edit these if you want.
 IMG="owasp/zap2docker-bare"
 IP_ADDR="127.0.0.1"
 FLASK_IMAGE="flask:latest"
 ZAP_PORT="8080"
 FLASK_PORT="5000"
-ZAP=http://$IP_ADDR:$ZAP_PORT
+
+# Everything below this runs off the params set above....
+
 FLASK=http://$IP_ADDR:$FLASK_PORT
 PROFILE=~/.profile
 OPTION=$1
 
+
+
 # Checks to see if profile is already srcd
 if grep -q 'export FLASK=' "$PROFILE"; then
-  echo "FLASK Profile already sourced"
+  echo "FLASK Profile already sourced - updating"
+  # Since it already exists in the file, we replace it with the new values
+  sed -e "s|export FLASK.*|export FLASK=$FLASK|g" -i $PROFILE
+  . $PROFILE
 else
- 
     echo "export FLASK=$FLASK" >> ~/.profile
-    . $PROFILE
+    . $PROFILE    
 fi
 
 
@@ -31,13 +38,23 @@ function deploy_zap () {
     echo "ZAP Deployed: http://$ZAP_IP:$ZAP_PORT"
     if grep -q 'export ZAP=' "$PROFILE"; then
         echo "ZAP Profile already sourced"
+        # Since it already exists in the file, we replace it with the new values
+        sed -e "s|export ZAP.*|export ZAP=http://$ZAP_IP:$ZAP_PORT|g" -i $PROFILE
+        . $PROFILE
     else
-    
         echo "export ZAP=http://$ZAP_IP:$ZAP_PORT" >> ~/.profile
         . $PROFILE
     fi
 
- 
+    if grep -q 'export ZAPTLS=' "$PROFILE"; then
+        echo "ZAPTLS Profile already sourced"
+        # Since it already exists in the file, we replace it with the new values
+        sed -e "s|export ZAPTLS.*|export ZAPTLS=$ZAPTLS|g" -i $PROFILE
+        . $PROFILE
+    else
+        echo "export ZAPTLS=https://$ZAP_IP:$ZAP_PORT" >> ~/.profile
+        . $PROFILE
+    fi
 }
 
 
@@ -66,7 +83,3 @@ elif [ "$OPTION" = "all" ]; then
 else
     echo "use flask/zap/all arg"
 fi
-
-
-
-

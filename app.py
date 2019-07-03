@@ -1,19 +1,29 @@
 import flask
+import logging
 import requests
 from sys import exit
 from os import environ
+from zapv2 import ZAPv2
 from urllib.parse import urlparse
 from flask import (
+    app,
     request, 
     abort, 
     jsonify, 
-    Response
+    Response,
+    render_template
 )
-from flask import render_template
-import logging
-from zapv2 import ZAPv2
+
 
 def get_redirect_url(target):
+    """Takes in url, spits out redirect
+    
+    Arguments:
+        target {str} -- requested url
+    
+    Returns:
+        [str] -- url 302 redirect
+    """
     r = requests.get(target, verify=False)
     return r.url
 
@@ -21,13 +31,7 @@ def get_redirect_url(target):
 app = flask.Flask(__name__)
 
 
-
-# Base config for zap
-# load ZAPS URL from the env vars
-ZAP = environ["ZAP"]
-ZAPTLS = environ['ZAPTLS']
-# You need both http and https proxies.
-# This is set by the deploy script and sourced in the environment variables.
+# TODO: Fix the hardcode
 zap = ZAPv2(
     proxies= {
         "http": "http://localhost:8080", 
@@ -38,12 +42,34 @@ zap = ZAPv2(
 
 @app.route("/")
 def home():
+    """Loads the home page
+    
+    Returns:
+        [obect] -- [template]
+    """
     return  render_template('home.html')
 
+
+@app.route("/docs")
+def docs():
+    return """
+    <meta http-equiv="refresh" content="0; URL='https://github.com/getsec/ZapIt/blob/master/docs/Documentation.md'"/>  
+    """
 
 
 @app.route("/api/v1/spider/start", methods=["POST"])
 def spider_start():
+    """[summary]
+    
+    Params: 
+        [dict] -- url dict
+            {
+                'url': 'http://example.com'
+            }
+
+    Returns:
+        [str] -- [scan_id]
+    """
     # Setting up some message for the response
     param = 'url'
 
@@ -83,6 +109,20 @@ def spider_start():
 
 @app.route("/api/v1/spider/progress", methods=["POST"])
 def spider_progress():
+    """This function gets the progress of the current spider.
+    
+    Params:
+        [dict] -- scan id dict
+            {
+                'id':'0'
+            }
+
+    Returns:
+        [dict] -- [progress]
+            {
+                'progress':%ofprogress
+            }
+    """
     param = 'id'
     example_json = {"id" : "#"}
     error = {
@@ -101,7 +141,7 @@ def spider_progress():
                 scanid=scan_id
             )
             return_data = {
-                "progress": scan_progress
+                "progress": f'{scan_progress} %'
             }
             return jsonify(return_data)
         else:
@@ -112,6 +152,17 @@ def spider_progress():
 
 @app.route("/api/v1/spider/results", methods=["POST"])
 def spider_results():
+    """Dumps results of the spider
+    
+    Params:
+        [dict] -- ID of the scan
+            {
+                'id': #
+            }
+
+    Returns:
+        [dict] -- Big ol list of sites
+    """
     example_json = {"id":"#"}
     error = {
         "error": f"incorrect request payload. use suggested payload",
@@ -137,6 +188,11 @@ def spider_results():
 
 @app.route("/api/v1/scan/results", methods=["GET"])
 def scan_results():
+    """Returns all scan results
+    
+    Returns:
+        [dict] -- All results found
+    """
     # Returns full results.
     try:
         output = zap.alert.alerts()

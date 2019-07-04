@@ -1,57 +1,63 @@
-# ZAP Headless Scanner 
+# ZapIt - Vulnerability Scanner
 
-This project leverages the ZAP headless scanner along with a FLASK API to allow development users the ability to launch the docker containers and scan it against their deployments.
+This project leverages the ZAP headless scanner along with a FLASK API to allow development users the ability to launch the docker containers and scan it against their web applications.
 
 ## Getting Started
 
-These instructions will get you a copy of the project and the deployment scripts that deploy the docker images that support the project. 
-
-```
-ZapIt
-|--> app
-|     |----> deploy.sh <-- Used for deploying flask and ZAP images
-|--> docs
-|     |----> API.md <-- API Documents for the Flask API front end
-|--> tests 
-      |----> run.py <-- Used for validation once stack is running
-|--> app.py <-- Flask API front end
-|--> DockerFile <-- Dockerfile for deploying the flask app
-|--> requirements.txt <-- Python requirements
-|--> README.md     <-- the instructions 
-```
+These instructions will get you a copy of the project up and running on your local machine for development and testing purposes. See deployment for notes on how to deploy the project on a live system.
 
 ### Prerequisites
 
 - Docker
-
-### Deployment
-
-Launch the docker deploy script
-> *bare* version good for fast deployment
-
-> *stable* version good for more features (not yet needed in the API)
+- Python 3.6 +
+- Python Dependencies
 
 ```sh
-./app/deploy.sh [version]
+pip install -r requirements.txt --user
 ```
 
-Ensure the containers have started by running
+### Installing
+A step by step series of examples that tell you how to get a development env running
 
-```sh
-docker ps
+Clone this repo.
+
+``` sh
+git clone <this repo url>
+```
+Launch the deploy script.
+
+``` sh
+./quick-deploy.sh
 ```
 
-## Local Development
 
-If you want to run this repo locally, and develop go ahead. Leverage the test cases, ensure that the ZAP_URL and ZAP_PORT are set in the environ, or hardcode them if you wish.
+## Running the tests
 
-Any pull requests will be reviewed. Please add :D
+Custom tests developed to run an example domain through a rudimentary test.
+
+``` sh
+python tests/run.py
+```
+
+
+## Built With
+
+* [Flask](http://flask.pocoo.org/) - The web framework used
+* [OWASP ZAP](https://github.com/zaproxy/zaproxy/wiki/Docker) - Scanning tool
+* [Docker](https://docker.com) - Used for containterized deployment
+
+## Contributing
+
+Send in a PR and I'll review it :)
 
 ## Authors
 
-* **Nathan Getty** - *Owner* - [GetSec](https://github.com/GetSEc)
+**Nathan Getty** - *Owner* - [GetSec](https://github.com/GetSec)
 
+## License
+
+This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details
 
 ## Acknowledgments
 
-* Big thumbs up to the boys at OWASP for creating ZAP
+* Big shoutout to all the OWASP team for developing ZAP

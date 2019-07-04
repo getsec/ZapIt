@@ -11,7 +11,7 @@ from flask import (
     render_template
 )
 # init flask & zap
-app = flask.Flask(__name__)
+api = flask.Flask(__name__)
 zap = zapv2.ZAPv2(
     proxies={
         "http": "http://localhost:8080",
@@ -33,7 +33,7 @@ def get_redirect_url(target):
     return r.url
 
 
-@app.route("/")
+@api.route("/")
 def home():
     """Loads the home page
 
@@ -43,14 +43,14 @@ def home():
     return render_template('home.html')
 
 
-@app.route("/docs")
+@api.route("/docs")
 def docs():
     return """
     <meta http-equiv="refresh" content="0; URL='https://github.com/getsec/ZapIt/blob/master/docs/Documentation.md'"/>
     """
 
 
-@app.route("/api/v1/spider/start", methods=["POST"])
+@api.route("/api/v1/spider/start", methods=["POST"])
 def spider_start():
     """[summary]
 
@@ -72,11 +72,9 @@ def spider_start():
     try:
         # Ensure the url param was sent to the api
         if request.json['url']:
-            #
+
             target = request.json['url']
             requested_url = get_redirect_url(target)
-            app.logger.info(f"User requested URL: {target}")
-            app.logger.info(f"URL Redirect: {requested_url}")
 
             scan_id = zap.spider.scan(
                 url=requested_url,
@@ -96,7 +94,7 @@ def spider_start():
         return jsonify(error)
 
 
-@app.route("/api/v1/spider/progress", methods=["POST"])
+@api.route("/api/v1/spider/progress", methods=["POST"])
 def spider_progress():
     """This function gets the progress of the current spider.
     Params:
@@ -136,7 +134,7 @@ def spider_progress():
         return jsonify(error)
 
 
-@app.route("/api/v1/spider/results", methods=["POST"])
+@api.route("/api/v1/spider/results", methods=["POST"])
 def spider_results():
     """Dumps results of the spider
     Params:
@@ -171,7 +169,7 @@ def spider_results():
         return jsonify(error)
 
 
-@app.route("/api/v1/scan/results", methods=["GET"])
+@api.route("/api/v1/scan/results", methods=["GET"])
 def scan_results():
     """Returns all scan results
 
@@ -187,6 +185,7 @@ def scan_results():
 
 
 if __name__ in "__main__":
-    app.run(host='0.0.0.0', port=5000, debug=True)
+    api.run(host='0.0.0.0', port=5000, debug=True)
+
 
 

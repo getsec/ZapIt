@@ -60,4 +60,4 @@ This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md
 
 ## Acknowledgments
 
-* Big shoutout to all the OWASP team for developing ZAP
+- Big shoutout to all the OWASP team for developing ZAP

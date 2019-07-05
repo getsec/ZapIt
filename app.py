@@ -176,7 +176,7 @@ def scan_results_summary():
     Returns:
         [list of dicts] -- [{alerts}]
     """
-    
+
     error_keyerror = {"error": 'Incorrect synaax. "{"url:"https://example.com"}'}
     error_restricted_url = {
         "error": "you are not authorized to request data for that url."

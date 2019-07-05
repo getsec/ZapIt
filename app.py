@@ -163,47 +163,51 @@ def spider_results():
         return jsonify(error)
 
 
-@api.route("/api/v1/scan/results", methods=["GET"])
-def scan_results():
-    """Returns all scan results
-
-    Returns:
-        [dict] -- All results found
-    """
-    # Returns full results.
-    try:
-        output = zap.alert.alerts()
-        return jsonify(output)
-    except Exception:
-        return abort(500)
-
-
-@api.route("/api/v1/scan/results/summary", methods=["GET"])
+@api.route("/api/v1/scan/results", methods=["POST"])
 def scan_results_summary():
-    """Returns all scan results
+    """[summary]
+
+    Params:
+        [dict] -- url dict
+            {
+                'url': 'http://example.com'
+            }
 
     Returns:
-        [dict] -- All results found
+        [list of dicts] -- [{alerts}]
     """
-    summary = []
-    # Returns a subset of results
+    
+    error_keyerror = {"error": 'Incorrect synaax. "{"url:"https://example.com"}'}
+    error_restricted_url = {
+        "error": "you are not authorized to request data for that url."
+    }
     try:
-        for alert in zap.alert.alerts():
-            summary.append(
-                {
-                    "alert": alert.get("alert"),
-                    "risk": alert.get("risk"),
-                    "method": alert.get("method"),
-                    "param": alert.get("param", "null"),
-                    "evidence": alert.get("evidence", "null"),
-                    "solution": alert.get("solution", "null"),
-                }
-            )
-        # used for getting unique list of items based off evidence value.
-        output = list({v["evidence"]: v for v in summary}.values())
-        return jsonify(output)
-    except Exception:
-        return abort(500)
+        if request.json["url"]:
+            target = request.json["url"]
+            base_url = get_redirect_url(target)
+            if naughty_url_check(target) is False:
+                return jsonify(error_restricted_url), 401
+        # Returns a subset of results
+        try:
+            summary = []
+            for alert in zap.alert.alerts(baseurl=base_url):
+                summary.append(
+                    {
+                        "alert": alert.get("alert"),
+                        "risk": alert.get("risk"),
+                        "method": alert.get("method"),
+                        "param": alert.get("param", "null"),
+                        "evidence": alert.get("evidence", "null"),
+                        "solution": alert.get("solution", "null"),
+                    }
+                )
+            # used for getting unique list of items based off evidence value.
+            output = list({v["evidence"]: v for v in summary}.values())
+            return jsonify(output)
+        except Exception:
+            return abort(500)
+    except KeyError:
+        return jsonify(error_keyerror)
 
 
 if __name__ in "__main__":

@@ -69,26 +69,32 @@ def spider_start():
     """
     # Setting up some message for the response
     param = "url"
-
+    error_param = {"error": f"Parameter '{param}' missing"}
+    error_keyerror = {"error": 'Incorrect synaax. "{"url:"https://example.com"}'}
+    error_restricted_url = {
+        "error": "you are not authorized to scan the requested url."
+    }
     # If there is no JSON Response abort
     if not request.json:
         abort(400)
     try:
         # Ensure the url param was sent to the api
         if request.json["url"]:
-
             target = request.json["url"]
-            requested_url = get_redirect_url(target)
+            if naughty_url_check(target) is False:
+                return jsonify(error_restricted_url), 401
 
+            requested_url = get_redirect_url(target)
             scan_id = zap.spider.scan(url=requested_url, recurse=False)
             data = {"scan_id": scan_id}
+
             return jsonify(data)
+
         else:
-            error = {"error": f"Parameter '{param}' missing"}
-            return jsonify(error)
+            return jsonify(error_param)
+
     except KeyError:
-        error = {"error": 'Incorrect synaax. "{"url:"https://example.com"}'}
-        return jsonify(error)
+        return jsonify(error_keyerror)
 
 
 @api.route("/api/v1/spider/status", methods=["POST"])

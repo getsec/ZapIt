@@ -1,22 +1,14 @@
-
 # Required libraries
 import flask
-import requests
 import zapv2
-from flask import (
-    request,
-    abort,
-    jsonify,
-    Response,
-    render_template
-)
+import requests
+from urllib.parse import urlparse
+from flask import request, abort, jsonify, Response, render_template
+
 # init flask & zap
 api = flask.Flask(__name__)
 zap = zapv2.ZAPv2(
-    proxies={
-        "http": "http://localhost:8080",
-        "https": "https://localhost:8080"
-    }
+    proxies={"http": "http://localhost:8080", "https": "https://localhost:8080"}
 )
 
 
@@ -33,6 +25,18 @@ def get_redirect_url(target):
     return r.url
 
 
+def naughty_url_check(target):
+    """ Checks to make sure the URL is in a whitelist.
+        Arguments:
+            target {str} -- The URL
+    """
+    good_domains = ["example.com", "wawanesa.com"]
+    if urlparse(target).netloc in good_domains:
+        return True
+    else:
+        return False
+
+
 @api.route("/")
 def home():
     """Loads the home page
@@ -40,7 +44,7 @@ def home():
     Returns:
         [obect] -- [template]
     """
-    return render_template('home.html')
+    return render_template("home.html")
 
 
 @api.route("/docs")
@@ -64,37 +68,30 @@ def spider_start():
         [str] -- [scan_id]
     """
     # Setting up some message for the response
-    param = 'url'
+    param = "url"
 
     # If there is no JSON Response abort
     if not request.json:
         abort(400)
     try:
         # Ensure the url param was sent to the api
-        if request.json['url']:
+        if request.json["url"]:
 
-            target = request.json['url']
+            target = request.json["url"]
             requested_url = get_redirect_url(target)
 
-            scan_id = zap.spider.scan(
-                url=requested_url,
-                recurse=False
-            )
+            scan_id = zap.spider.scan(url=requested_url, recurse=False)
             data = {"scan_id": scan_id}
             return jsonify(data)
         else:
-            error = {
-                "error": f"Parameter '{param}' missing"
-            }
+            error = {"error": f"Parameter '{param}' missing"}
             return jsonify(error)
     except KeyError:
-        error = {
-            "error": "Incorrect synaax. \"{\"url:\"https://example.com\"}"
-        }
+        error = {"error": 'Incorrect synaax. "{"url:"https://example.com"}'}
         return jsonify(error)
 
 
-@api.route("/api/v1/spider/progress", methods=["POST"])
+@api.route("/api/v1/spider/status", methods=["POST"])
 def spider_progress():
     """This function gets the progress of the current spider.
     Params:
@@ -105,28 +102,21 @@ def spider_progress():
     Returns:
         [dict] -- [progress]
             {
-                'progress':%ofprogress
+                'status':'#'
             }
     """
     example_json = {"id": "#"}
-    error = {
-        "error": "incorrect payload syntax.",
-        "suggested_payload": example_json
-    }
+    error = {"error": "incorrect payload syntax.", "suggested_payload": example_json}
     # Ensure request includes json data
     if not request.json:
         return "No json found"
         abort(400)
     # ensure that the ID param is in the request
     try:
-        if request.json['id'].isdigit():
-            scan_id = request.json['id']
-            scan_progress = zap.spider.status(
-                scanid=scan_id
-            )
-            return_data = {
-                "progress": f'{scan_progress} %'
-            }
+        if request.json["id"].isdigit():
+            scan_id = request.json["id"]
+            scan_progress = zap.spider.status(scanid=scan_id)
+            return_data = {"status": scan_progress}
             return jsonify(return_data)
         else:
             return jsonify(error)
@@ -149,18 +139,16 @@ def spider_results():
     example_json = {"id": "#"}
     error = {
         "error": f"incorrect request payload. use suggested payload",
-        "suggested_payload": example_json
+        "suggested_payload": example_json,
     }
 
     if not request.json:
         abort(Response(error))
 
     try:
-        if request.json['id'].isdigit():
-            scan_id = request.json['id']
-            results = zap.spider.results(
-                scanid=scan_id
-            )
+        if request.json["id"].isdigit():
+            scan_id = request.json["id"]
+            results = zap.spider.results(scanid=scan_id)
 
             return jsonify(results)
         else:
@@ -185,7 +173,5 @@ def scan_results():
 
 
 if __name__ in "__main__":
-    api.run(host='0.0.0.0', port=5000, debug=True)
-
-
+    api.run(host="0.0.0.0", port=5000, debug=True)
 

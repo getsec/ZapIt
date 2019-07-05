@@ -85,7 +85,7 @@ def spider_start():
                 return jsonify(error_restricted_url), 401
 
             requested_url = get_redirect_url(target)
-            scan_id = zap.spider.scan(url=requested_url, recurse=False)
+            scan_id = zap.spider.scan(url=requested_url, recurse=False, maxchildren=10)
             data = {"scan_id": scan_id}
 
             return jsonify(data)
@@ -173,6 +173,34 @@ def scan_results():
     # Returns full results.
     try:
         output = zap.alert.alerts()
+        return jsonify(output)
+    except Exception:
+        return abort(500)
+
+
+@api.route("/api/v1/scan/results/summary", methods=["GET"])
+def scan_results_summary():
+    """Returns all scan results
+
+    Returns:
+        [dict] -- All results found
+    """
+    summary = []
+    # Returns a subset of results
+    try:
+        for alert in zap.alert.alerts():
+            summary.append(
+                {
+                    "alert": alert.get("alert"),
+                    "risk": alert.get("risk"),
+                    "method": alert.get("method"),
+                    "param": alert.get("param", "null"),
+                    "evidence": alert.get("evidence", "null"),
+                    "solution": alert.get("solution", "null"),
+                }
+            )
+        # used for getting unique list of items based off evidence value.
+        output = list({v["evidence"]: v for v in summary}.values())
         return jsonify(output)
     except Exception:
         return abort(500)

@@ -39,7 +39,7 @@ python tests/run.py
 
 ## Built With
 
-* [Flask](http://flask.pocoo.org/) - The web framework used
+* [FastAPI](https://github.com/tiangolo/fastapi) - Quick as hell
 * [OWASP ZAP](https://github.com/zaproxy/zaproxy/wiki/Docker) - Scanning tool
 * [Docker](https://docker.com) - Used for containterized deployment
 

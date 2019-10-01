@@ -1,6 +1,6 @@
 # ZapIt - Vulnerability Scanner
 
-This project leverages the ZAP headless scanner along with a FLASK API to allow development users the ability to launch the docker containers and scan it against their web applications.
+This project leverages the ZAP headless scanner along with an API to allow development users the ability to launch the docker containers and scan it against their web applications in a easy scalale fashion
 
 ## Getting Started
 
@@ -21,13 +21,10 @@ A step by step series of examples that tell you how to get a development env run
 
 Clone this repo.
 
-``` sh
-git clone <this repo url>
-```
 Launch the deploy script.
 
 ``` sh
-./quick-deploy.sh
+./backend.sh
 ```
 
 

@@ -12,46 +12,6 @@ zap = zapv2.ZAPv2(
 )
 
 
-def get_redirect_url(target):
-    """Takes in url, spits out redirect
-
-    Arguments:
-        target {str} -- requested url
-
-    Returns:
-        [str] -- url 302 redirect
-    """
-    r = requests.get(target, verify=False)
-    return r.url
-
-
-def naughty_url_check(target):
-    """ Checks to make sure the URL is in a whitelist.
-        Arguments:
-            target {str} -- The URL
-    """
-    good_domains = ["example.com", "wawanesa.com"]
-    if urlparse(target).netloc in good_domains:
-        return True
-    else:
-        return False
-
-
-@api.route("/")
-def home():
-    """Loads the home page
-
-    Returns:
-        [obect] -- [template]
-    """
-    return render_template("home.html")
-
-
-@api.route("/docs")
-def docs():
-    return """
-    <meta http-equiv="refresh" content="0; URL='https://github.com/getsec/ZapIt/blob/master/docs/Documentation.md'"/>
-    """
 
 
 @api.route("/api/v1/spider/start", methods=["POST"])

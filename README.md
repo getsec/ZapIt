@@ -1,10 +1,7 @@
 # ZapIt - Vulnerability Scanner
 
-This project leverages the ZAP headless scanner along with an API to allow development users the ability to launch the docker containers and scan it against their web applications in a easy scalale fashion
+This project leverages the ZAP headless scanner along with an API to allow development users the ability to launch the docker containers and scan it against their web applications in a easy scalable fashion
 
-## Getting Started
-
-These instructions will get you a copy of the project up and running on your local machine for development and testing purposes. See deployment for notes on how to deploy the project on a live system.
 
 ### Prerequisites
 
@@ -16,30 +13,27 @@ These instructions will get you a copy of the project up and running on your loc
 pip install -r requirements.txt --user
 ```
 
-### Installing
+### Building the backend
 A step by step series of examples that tell you how to get a development env running
 
-Clone this repo.
+1. Clone this repo.
+2. Deploy the backend infrastructure
+    ``` sh
+    ./backend.sh
+    ```
 
-Launch the deploy script.
+### Scanning 
 
-``` sh
-./backend.sh
-```
-
-
-## Running the tests
-
-Custom tests developed to run an example domain through a rudimentary test.
+You can scan your environment by leveraging ZAP directly, or by using the prebuilt scan script for quick and easy results.
 
 ``` sh
-python tests/run.py
+python scan.py [http|https]://full.example.domain.com
 ```
-
+> Dont worry about redirects, there is logic in the helper files that handle that, so sites that convert "example.com" > "www.example.com" are handled.
 
 ## Built With
 
-* [Flask](http://flask.pocoo.org/) - The web framework used
+* [FastAPI](https://github.com/tiangolo/fastapi) - Quick as hell
 * [OWASP ZAP](https://github.com/zaproxy/zaproxy/wiki/Docker) - Scanning tool
 * [Docker](https://docker.com) - Used for containterized deployment
 

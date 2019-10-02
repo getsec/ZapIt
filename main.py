@@ -71,7 +71,7 @@ def spider_results(params: SpiderStatus):
     return zap.spider.results(scanid=scan_id)
 
 
-@app.post("/api/v1/scan/results")
+@app.post("/api/v1/results/summary")
 def scan_results_summary(params: DestinationHost):
     """[summary]
     
@@ -104,3 +104,9 @@ def scan_results_summary(params: DestinationHost):
     output = list({v["evidence"]: v for v in summary}.values())
 
     return output
+
+@app.post("/api/v1/results/full")
+def scan_results_full():
+    url = DestinationHost.url
+    redirected_url = get_redirect_url(url)
+    return zap.alert.alerts(baseurl=redirected_url)

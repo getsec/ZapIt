@@ -1,4 +1,5 @@
 import requests
+from pprint import pprint as pp
 from time import sleep
 from sys import argv
 from helpers.redirect import get_redirect_url
@@ -53,29 +54,28 @@ def main(url):
         print(f"Spider Progress: {progress}")
         progress = status_spider(scan_id)
         sleep(2)
-    
+
     results = results_spider(scan_id)
     print(f"\n\n SPIDER RESULTS \n\n")
     for i in results:
         print(i)
 
     ## LAUNCH ACTIVE SCAN ##
-    scan_id = start_ascan(url)
-    progress = int(status_ascan(scan_id))
-    while progress < 90:
-        print(f"Active Scan Progress: {progress}")
-        progress = int(status_ascan(scan_id))
+    scan_id = start_ascan(url)['scan_id']
+    print(f"ScanID {scan_id}")
+    aprogress = int(status_ascan(scan_id))
+    while aprogress < 90:
+        print(f"Active Scan Progress: {aprogress}")
+        aprogress = int(status_ascan(scan_id))
         sleep(2)
-    
-    print("printing results")
-    print(get_results(url))
+
+    print("\n\nTOTAL RESULTS \n\n")
+    pp(get_results(url))
+
 
 
 
 if __name__ in '__main__':
     zap = "http://localhost:5000"
-    try:
-        url = argv[1]
-        main(url)
-    except Exception:
-        print(f"Usage:\n\t {argv[0]} <url>")
+    url = argv[1]
+    main(url)

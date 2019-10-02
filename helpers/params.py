@@ -5,5 +5,5 @@ class DestinationHost(BaseModel):
     url: str
 
 
-class SpiderStatus(BaseModel):
+class ScanNumber(BaseModel):
     scan_id: str

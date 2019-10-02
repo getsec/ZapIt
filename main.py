@@ -84,7 +84,7 @@ def scan_results_summary(params: DestinationHost):
         Unique set of results
 
     """
-    url = DestinationHost.url
+    url = params.url
     redirected_url = get_redirect_url(url)
     full_zap_results = zap.alert.alerts(baseurl=redirected_url)
     summary = []

@@ -14,7 +14,7 @@ tool_name = "Wawanesa ZapIt CICD Scanning Tool"
 
 app = FastAPI(
     title=tool_name, description="CICD Tool for scanning webapps in the pipeline"
-)  # initialize the API
+)
 
 zap = zapv2.ZAPv2(proxies={"http": environ["ZAP"], "https": environ["ZAPTLS"]})
 
@@ -81,8 +81,17 @@ def scan_results_summary(params: DestinationHost):
             then will get a list of all the unique results
     
     Retuns:
-        Unique set of results
-
+        list of dicts - Unique set of results
+        example:
+            {
+                "alert": "Information Disclosure - Debug Error Messages",
+                "risk": "Low",
+                "method": "POST",
+                "url": "https://www.urldebugger.com"
+                "param": "",
+                "evidence": "under construction",
+                "solution": "Disable debugging messages before pushing to production."
+            }
     """
     url = params.url
     redirected_url = get_redirect_url(url)
@@ -95,6 +104,7 @@ def scan_results_summary(params: DestinationHost):
                 "alert": single_result.get("alert"),
                 "risk": single_result.get("risk"),
                 "method": single_result.get("method"),
+                "url": single_result.get("url"),
                 "param": single_result.get("param", "null"),
                 "evidence": single_result.get("evidence", "null"),
                 "solution": single_result.get("solution", "null"),

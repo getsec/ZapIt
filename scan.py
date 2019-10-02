@@ -59,7 +59,7 @@ def get_results(url):
 
 def main(url):
     print(banner)
-    print("\n INITIALIZING SPIDER \n")
+    print("\n 1. Launching spider")
     scan_id = start_spider(url)['scan_id']
     progress = status_spider(scan_id)
 

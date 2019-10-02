@@ -9,12 +9,12 @@ from urllib3.exceptions import InsecureRequestWarning
 requests.packages.urllib3.disable_warnings(category=InsecureRequestWarning)
 
 banner ="""
-    _____          ___ _.   
-   |__  /__ _ _ __|_ _| |_ 
+    _____          ___ _.
+   |__  /__ _ _ __|_ _| |_
      / // _` | '_ \| || __|
-    / /| (_| | |_) | || |_ 
+    / /| (_| | |_) | || |_
    /____\__,_| .__/___|\__|
-             |_|           
+             |_|
   OWASP ZAP CI/CD TESTING TOOL
  ** Actively in development. **
 """
@@ -59,19 +59,6 @@ def get_results(url):
 
 def main(url):
     print(banner)
-    print("\n 1. Launching spider")
-    scan_id = start_spider(url)['scan_id']
-    progress = status_spider(scan_id)
-
-    while progress < 90:
-        print(f"Spider Progress: {progress}")
-        progress = status_spider(scan_id)
-        sleep(2)
-
-    results = results_spider(scan_id)
-    print(f"\n\n SPIDER RESULTS \n\n")
-    for i in results:
-        print(i)
 
     ## LAUNCH ACTIVE SCAN ##
     scan_id = start_ascan(url)['scan_id']

@@ -31,7 +31,9 @@ def spider(params: DestinationHost):
         dict -- example:
             {"scan_id": "0"}
     """
-    scan_id = zap.spider.scan(url=params.url, recurse=False, maxchildren=10)
+    url = params.url
+    redirected_url = get_redirect_url(url)
+    scan_id = zap.spider.scan(url=redirected_url, recurse=False, maxchildren=10)
     return {"scan_id": scan_id}
 
 

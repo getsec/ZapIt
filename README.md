@@ -27,14 +27,14 @@ A step by step series of examples that tell you how to get a development env run
 You can scan your environment by leveraging ZAP directly, or by using the prebuilt scan script for quick and easy results.
 
 ``` sh
-python scan.py [http|https]://full.example.domain.com
+python ZapIt.py [http|https]://full.example.domain.com
 ```
 > Dont worry about redirects, there is logic in the helper files that handle that, so sites that convert "example.com" > "www.example.com" are handled.
 
 ### Take it out for a spin
 Here is a quick example of how you can scan your site and what the results look like, keep in mind this will be changing with new releases
 ```
-$ python3 scan.py https://ngetty.me
+$ python3 ZapIt.py https://ngetty.me
 
     _____          ___ _.
    |__  /__ _ _ __|_ _| |_

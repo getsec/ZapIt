@@ -73,9 +73,14 @@ def main(url):
     pp(get_results(url))
 
 
-
+# TODO: Create scan.py into a cool cli tool
+# TODO:     1. Spider Only
+# TODO:     2. Spider active scan
+# TODO:     3. Spider and invasive scan
+# TODO:     4. Output the reports somwhere
 
 if __name__ in '__main__':
     zap = "http://localhost:5000"
     url = argv[1]
     main(url)
+

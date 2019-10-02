@@ -1,8 +1,9 @@
-from requests import get
+import requests
 from urllib3.exceptions import InsecureRequestWarning
 
 # Suppress only the single warning from urllib3 needed.
 requests.packages.urllib3.disable_warnings(category=InsecureRequestWarning)
+
 
 def get_redirect_url(url):
     """Takes in url, spits out redirect
@@ -13,5 +14,5 @@ def get_redirect_url(url):
     Returns:
         [str] -- url 302 redirect
     """
-    r = get(url, verify=False)
+    r = requests.get(url, verify=False)
     return r.url

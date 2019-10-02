@@ -8,6 +8,17 @@ from urllib3.exceptions import InsecureRequestWarning
 # Suppress only the single warning from urllib3 needed.
 requests.packages.urllib3.disable_warnings(category=InsecureRequestWarning)
 
+banner ="""
+    _____          ___ _.   
+   |__  /__ _ _ __|_ _| |_ 
+     / // _` | '_ \| || __|
+    / /| (_| | |_) | || |_ 
+   /____\__,_| .__/___|\__|
+             |_|           
+  OWASP ZAP CI/CD TESTING TOOL
+ ** Actively in development. **
+"""
+
 def start_spider(url):
     payload = {"url": get_redirect_url(url)}
     api_url = f"{zap}/api/v1/spider/start"
@@ -47,6 +58,8 @@ def get_results(url):
 
 
 def main(url):
+    print(banner)
+    print("\n INITIALIZING SPIDER \n")
     scan_id = start_spider(url)['scan_id']
     progress = status_spider(scan_id)
 

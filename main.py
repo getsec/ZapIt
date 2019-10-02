@@ -105,8 +105,9 @@ def scan_results_summary(params: DestinationHost):
 
     return output
 
+
 @app.post("/api/v1/results/full")
-def scan_results_full():
-    url = DestinationHost.url
+def scan_results_full(params: DestinationHost):
+    url = params.url
     redirected_url = get_redirect_url(url)
     return zap.alert.alerts(baseurl=redirected_url)

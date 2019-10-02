@@ -6,7 +6,7 @@ from helpers.redirect import get_redirect_url
 # import all the parameters
 from helpers.params import (
     DestinationHost,
-    SpiderStatus
+    ScanNumber
 )
 
 FastAPI()
@@ -15,8 +15,11 @@ tool_name = "Wawanesa ZapIt CICD Scanning Tool"
 app = FastAPI(
     title=tool_name, description="CICD Tool for scanning webapps in the pipeline"
 )
-
-zap = zapv2.ZAPv2(proxies={"http": environ["ZAP"], "https": environ["ZAPTLS"]})
+try:
+    zap = zapv2.ZAPv2(proxies={"http": environ["ZAP"], "https": environ["ZAPTLS"]})
+except Exception:
+    url ='localhost:8080'
+    zap = zapv2.ZAPv2(proxies={"http": f'http://{url}', "https": f'http://{url}'})
 
 
 @app.post("/api/v1/spider/start")
@@ -38,7 +41,7 @@ def spider(params: DestinationHost):
 
 
 @app.post("/api/v1/spider/status")
-def spider_status(params: SpiderStatus):
+def spider_status(params: ScanNumber):
     """
         This function will take the input and return
         the percentage of the spider scan progress
@@ -55,7 +58,7 @@ def spider_status(params: SpiderStatus):
 
 
 @app.post("/api/v1/spider/results")
-def spider_results(params: SpiderStatus):
+def spider_results(params: ScanNumber):
     """
         This function takes in the ID of the scan
         And will return a list of all the urls the
@@ -121,3 +124,19 @@ def scan_results_full(params: DestinationHost):
     url = params.url
     redirected_url = get_redirect_url(url)
     return zap.alert.alerts(baseurl=redirected_url)
+
+
+@app.post("/api/v1/active/scan")
+def active_scan(params: DestinationHost):
+    url = params.url
+    redirected_url = get_redirect_url(url)
+    launch = zap.ascan.scan(url=redirected_url)
+    #launch_recurse = zap.ascan.scan(url=redirected_url, recurse=True)
+    return {"scan_id": launch}
+
+
+@app.post("/api/v1/active/status")
+def active_scan(params: ScanNumber):
+    scan_id = params.scan_id
+    results = zap.ascan.status(scanid=scan_id)
+    return results

@@ -34,7 +34,7 @@ python ZapIt.py [http|https]://full.example.domain.com
 ### Take it out for a spin
 Here is a quick example of how you can scan your site and what the results look like, keep in mind this will be changing with new releases
 ```
-$ python3 ZapIt.py https://ngetty.me
+$ python3 ZapIt.py https://ngetty.me --mode normal --format json
 
     _____          ___ _.
    |__  /__ _ _ __|_ _| |_

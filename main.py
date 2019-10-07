@@ -36,7 +36,11 @@ def spider(params: DestinationHost):
     """
     url = params.url
     redirected_url = get_redirect_url(url)
-    scan_id = zap.spider.scan(url=redirected_url, recurse=False, maxchildren=10)
+    scan_id = zap.spider.scan(
+        url=redirected_url, 
+        recurse=True, 
+        maxchildren=10
+    )
     return {"scan_id": scan_id}
 
 

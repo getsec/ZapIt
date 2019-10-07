@@ -1,86 +1,111 @@
-import requests
-from pprint import pprint as pp
+
+from pprint import pprint as pprint
 from time import sleep
-from sys import argv
+import argparse
 from helpers.redirect import get_redirect_url
 from urllib3.exceptions import InsecureRequestWarning
+from helpers.scan import (
+    start_spider,
+    start_ascan,
+    results_spider,
+    status_ascan,
+    status_spider,
+    get_results,
+    write_file
+)
+
+
+## Load argument parser
+parser = argparse.ArgumentParser()
+parser.add_argument("url", help="full URL of the endpoint you wish to scan")
+parser.add_argument("--mode", default="normal", help="Which type of scan are we doing today [normal|spider|overkill]")
+parser.add_argument("--format", default="json", help="Choose your type: json/yaml")
+args = parser.parse_args()
 
 # Suppress only the single warning from urllib3 needed.
-requests.packages.urllib3.disable_warnings(category=InsecureRequestWarning)
+#requests.packages.urllib3.disable_warnings(category=InsecureRequestWarning)
 
-banner ="""
+def banner():
+    banner ="""
     _____          ___ _.
    |__  /__ _ _ __|_ _| |_
      / // _` | '_ \| || __|
     / /| (_| | |_) | || |_
    /____\__,_| .__/___|\__|
              |_|
+
   OWASP ZAP CI/CD TESTING TOOL
  ** Actively in development. **
-"""
-
-def start_spider(url):
-    payload = {"url": get_redirect_url(url)}
-    api_url = f"{zap}/api/v1/spider/start"
-    r = requests.post(api_url, json=payload)
-    return r.json()
-
-def status_spider(scan_id):
-    payload = {"scan_id": scan_id}
-    api_url = f"{zap}/api/v1/spider/status"
-    r = requests.post(api_url, json=payload)
-    status_integer = int(r.json()['status'])
-    return status_integer
-
-def results_spider(scan_id):
-    payload = {"scan_id": scan_id}
-    api_url = f"{zap}/api/v1/spider/results"
-    r = requests.post(api_url, json=payload)
-    return r.json()
-
-def start_ascan(url):
-    payload = {"url": url}
-    api_url = f"{zap}/api/v1/active/scan"
-    r = requests.post(api_url, json=payload)
-    return r.json()
-
-def status_ascan(scan_id):
-    payload = {"scan_id": scan_id}
-    api_url = f"{zap}/api/v1/active/status"
-    r = requests.post(api_url, json=payload)
-    return r.json()
-
-def get_results(url):
-    payload = {"url": url}
-    api_url = f"{zap}/api/v1/results/summary"
-    r = requests.post(api_url, json=payload)
-    return r.json()
+ **  need help?              **
+ **         ZapIt.py --help  **
+ ** ~~~~~~~~~~~~~~~~~~~~~~~~ ** 
+    """
+    return banner
 
 
-def main(url):
-    print(banner)
+def normal_mode(url):
+    # Initiate spider
+    scan_id = start_spider(url)
+    progress = status_spider(scan_id)
+    # while spider progress is less than 95%
+    # complete, continue to scan
+    print(f"Launching Spider Scan.")
+    while progress < 95:
+        progress = status_spider(scan_id)
+        sleep(1)
+    
+    # Once the spider completes (mostly)
+    # we will kick off the active scan
+    print(f"Launching Active Scan.")
+    scan_id = start_ascan(url)
+    while progress < 95:
+        progress = status_ascan(scan_id)
+        sleep(1)
+    
+    print("Scan Completed. Results below\n")
+    results = get_results(url)
+    pprint(results)
+    return results
 
-    ## LAUNCH ACTIVE SCAN ##
-    scan_id = start_ascan(url)['scan_id']
-    print(f"ScanID {scan_id}")
-    aprogress = int(status_ascan(scan_id))
-    while aprogress < 90:
-        print(f"Active Scan Progress: {aprogress}")
-        aprogress = int(status_ascan(scan_id))
-        sleep(2)
 
-    print("\n\nTOTAL RESULTS \n\n")
-    pp(get_results(url))
+def spider_mode(url):
+    scan_id = start_spider(url)
+    progress = status_spider(scan_id)
+    # while spider progress is less than 95%
+    # complete, continue to scan
+    print(f"Launching Spider Scan.")
+    while progress < 100:
+        progress = status_spider(scan_id)
+        sleep(1)
+    sleep(1)
+    spider_results = results_spider(scan_id)
+    pprint(spider_results)
+    return spider_results
 
-
-# TODO: Create scan.py into a cool cli tool
-# TODO:     1. Spider Only
-# TODO:     2. Spider active scan
-# TODO:     3. Spider and invasive scan
-# TODO:     4. Output the reports somwhere
 
 if __name__ in '__main__':
-    zap = "http://localhost:5000"
-    url = argv[1]
-    main(url)
+    print(banner())
+    url = args.url
+    ext = args.format
+    filename = url.split('//')[1]
+   
+
+    if args.mode.lower() == "normal":
+        scan_output = normal_mode(url)
+        results = scan_output
+        filename = 'ZapIt-normal-' + filename 
+    
+    elif args.mode.lower() == "spider":
+        scan_output = spider_mode(url)
+        results = scan_output
+        filename = 'ZapIt-spider-' + filename 
+    
+    elif args.mode.lower() == "overkill":
+        print("Overkill implmentation to be done later")
+    
+
+    write_file(results, filename, ext)
+
+
+    
 

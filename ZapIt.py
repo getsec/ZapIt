@@ -1,9 +1,8 @@
-
 from pprint import pprint as pprint
 from time import sleep
 import argparse
-from helpers.redirect import get_redirect_url
-from urllib3.exceptions import InsecureRequestWarning
+from colorama import Fore, Style, init
+
 from helpers.scan import (
     start_spider,
     start_ascan,
@@ -15,38 +14,47 @@ from helpers.scan import (
     update_ua
 )
 
-
+init()  # initialize colorama
 ## Load argument parser
 parser = argparse.ArgumentParser()
 parser.add_argument("url", help="full URL of the endpoint you wish to scan")
-parser.add_argument("--mode", default="normal", help="Which type of scan are we doing today [normal|spider|overkill]")
-parser.add_argument("--format", default="json", help="Choose your type: json/yaml")
+parser.add_argument(
+    "--mode",
+    default="normal",
+    help="Which type of scan are we doing today [normal|spider|overkill]",
+)
 parser.add_argument(
     "--ua",
     default="ZapIt / Default User Agent",
-    help="Updates the user agent to whatever you please"
+    help="Updates the user agent to whatever you please",
 )
 args = parser.parse_args()
 
 # Suppress only the single warning from urllib3 needed.
-#requests.packages.urllib3.disable_warnings(category=InsecureRequestWarning)
+# requests.packages.urllib3.disable_warnings(category=InsecureRequestWarning)
+
 
 def banner(banner_params):
-    banner =f"""
+    banner = f"""{Fore.GREEN}
     _____          ___ _.
    |__  /__ _ _ __|_ _| |_
      / // _` | '_ \| || __|
     / /| (_| | |_) | || |_
    /____\__,_| .__/___|\__|
-             |_|
+             |_| {Style.RESET_ALL}  
 
-  OWASP ZAP CI/CD TESTING TOOL
+  {Fore.MAGENTA}OWASP ZAP CI/CD TESTING TOOL{Style.RESET_ALL}
  ** Actively in development. **
  **  need help?              **
  **         ZapIt.py --help  **
- ** ~~~~~~~~~~~~~~~~~~~~~~~~ ** 
-{banner_params}\n\n"""
+ ** ~~~~~~~~~~~~~~~~~~~~~~~~ **
+    
+    Your options are as follows:
+"""  # NOQA
     print(banner)
+    print
+    for k, v in banner_params.items():
+        print(f"\t{Fore.GREEN}{k}{Style.RESET_ALL}: {v}")
     return banner
 
 
@@ -60,7 +68,7 @@ def normal_mode(url):
     while progress < 95:
         progress = status_spider(scan_id)
         sleep(1)
-    
+
     # Once the spider completes (mostly)
     # we will kick off the active scan
     print(f"Launching Active Scan.")
@@ -68,7 +76,7 @@ def normal_mode(url):
     while progress < 95:
         progress = status_ascan(scan_id)
         sleep(1)
-    
+
     print("Scan Completed. Results below\n")
     results = get_results(url)
     pprint(results)
@@ -90,38 +98,32 @@ def spider_mode(url):
     return spider_results
 
 
-
-if __name__ in '__main__':
+if __name__ in "__main__":
 
     url = args.url
-    ext = args.format
-    filename = url.split('//')[1]
-    banner_params = f"  URL: {url}\n"
+    filename = url.split("//")[1]
+    banner_params = {"URL": url}
+    banner_params.update({"Mode": args.mode})
+
     if args.ua:
         ua = args.ua
-        banner_params += f"  User Agent: {ua}"
+        banner_params.update({"User Agent": ua})
         update_ua(args.ua)
 
-
-
     banner(banner_params)
+
     if args.mode.lower() == "normal":
         scan_output = normal_mode(url)
         results = scan_output
-        filename = 'ZapIt-normal-' + filename 
-    
+        filename = 'ZapIt-normal-' + filename
+
     elif args.mode.lower() == "spider":
         scan_output = spider_mode(url)
         results = scan_output
-        filename = 'ZapIt-spider-' + filename 
-    
+        filename = 'ZapIt-spider-' + filename
+
     elif args.mode.lower() == "overkill":
         print("Overkill implmentation to be done later")
-    
-    
 
-    write_file(results, filename, ext)
-
-
-    
+    write_file(results, filename)
 

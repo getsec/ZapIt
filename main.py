@@ -6,11 +6,18 @@ from helpers.redirect import get_redirect_url
 # import all the parameters
 from helpers.params import (
     DestinationHost,
+    UserAgentString,
     ScanNumber
 )
 
 FastAPI()
 tool_name = "Wawanesa ZapIt CICD Scanning Tool"
+SUCCESS = {
+    "outcome": "success"
+}
+FAIL = {
+    "outcome": "failure"
+}
 
 app = FastAPI(
     title=tool_name, description="CICD Tool for scanning webapps in the pipeline"
@@ -20,6 +27,27 @@ try:
 except Exception:
     url ='localhost:8080'
     zap = zapv2.ZAPv2(proxies={"http": f'http://{url}', "https": f'http://{url}'})
+
+
+@app.post("/api/v1/options/updateua")
+def update_user_agent(params: UserAgentString):
+    """
+        Changes the default user agent to the UA you specify
+    
+    Arguments:
+        params {str} -- User agent you want
+    
+    Returns:
+        [dict] -- Your value
+    """
+    ua = params.ua
+    input_params = { "requested_parameters": {"ua":ua}}
+    try:
+        zap.core.set_option_default_user_agent(ua)
+        return {**SUCCESS, **input_params} 
+    except Exception as msg:
+        err = {"Exception": msg}
+        return {**FAIL, **err}
 
 
 @app.post("/api/v1/spider/start")

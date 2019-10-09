@@ -11,7 +11,8 @@ from helpers.scan import (
     status_ascan,
     status_spider,
     get_results,
-    write_file
+    write_file,
+    update_ua
 )
 
 
@@ -20,13 +21,18 @@ parser = argparse.ArgumentParser()
 parser.add_argument("url", help="full URL of the endpoint you wish to scan")
 parser.add_argument("--mode", default="normal", help="Which type of scan are we doing today [normal|spider|overkill]")
 parser.add_argument("--format", default="json", help="Choose your type: json/yaml")
+parser.add_argument(
+    "--ua",
+    default="ZapIt / Default User Agent",
+    help="Updates the user agent to whatever you please"
+)
 args = parser.parse_args()
 
 # Suppress only the single warning from urllib3 needed.
 #requests.packages.urllib3.disable_warnings(category=InsecureRequestWarning)
 
-def banner():
-    banner ="""
+def banner(banner_params):
+    banner =f"""
     _____          ___ _.
    |__  /__ _ _ __|_ _| |_
      / // _` | '_ \| || __|
@@ -39,7 +45,8 @@ def banner():
  **  need help?              **
  **         ZapIt.py --help  **
  ** ~~~~~~~~~~~~~~~~~~~~~~~~ ** 
-    """
+{banner_params}\n\n"""
+    print(banner)
     return banner
 
 
@@ -83,13 +90,21 @@ def spider_mode(url):
     return spider_results
 
 
+
 if __name__ in '__main__':
-    print(banner())
+
     url = args.url
     ext = args.format
     filename = url.split('//')[1]
-   
+    banner_params = f"  URL: {url}\n"
+    if args.ua:
+        ua = args.ua
+        banner_params += f"  User Agent: {ua}"
+        update_ua(args.ua)
 
+
+
+    banner(banner_params)
     if args.mode.lower() == "normal":
         scan_output = normal_mode(url)
         results = scan_output
@@ -102,6 +117,7 @@ if __name__ in '__main__':
     
     elif args.mode.lower() == "overkill":
         print("Overkill implmentation to be done later")
+    
     
 
     write_file(results, filename, ext)
